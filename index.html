@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InvoicePro - Smart Invoice Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+            <span class="logo-text">InvoicePro</span>
+        </div>
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+            <a href="#" class="nav-item"><i class="fas fa-file-invoice"></i><span>Invoices</span></a>
+            <a href="#" class="nav-item"><i class="fas fa-users"></i><span>Clients</span></a>
+            <a href="#" class="nav-item"><i class="fas fa-box"></i><span>Products</span></a>
+            <a href="#" class="nav-item"><i class="fas fa-chart-line"></i><span>Reports</span></a>
+            <a href="#" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">JD</div>
+                <div class="user-details">
+                    <span class="user-name">John Doe</span>
+                    <span class="user-role">Admin</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">Welcome back! Here's your business overview.</p>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search invoices...">
+                </div>
+                <button class="btn-icon"><i class="fas fa-bell"></i><span class="notification-badge">3</span></button>
+                <button class="btn-primary" id="createInvoiceBtn"><i class="fas fa-plus"></i> New Invoice</button>
+            </div>
+        </header>
+
+        <!-- Stats Cards -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class="fas fa-file-invoice"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" data-target="156">0</span>
+                    <span class="stat-label">Total Invoices</span>
+                </div>
+                <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 12%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" data-target="89450" data-prefix="₹">₹0</span>
+                    <span class="stat-label">Paid Amount</span>
+                </div>
+                <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 8%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" data-target="23500" data-prefix="₹">₹0</span>
+                    <span class="stat-label">Pending</span>
+                </div>
+                <div class="stat-trend down"><i class="fas fa-arrow-down"></i> 3%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" data-target="48">0</span>
+                    <span class="stat-label">Active Clients</span>
+                </div>
+                <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 5%</div>
+            </div>
+        </section>
+
+        <!-- Main Grid -->
+        <div class="content-grid">
+            <!-- Recent Invoices -->
+            <section class="card invoices-section">
+                <div class="card-header">
+                    <h2>Recent Invoices</h2>
+                    <a href="#" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="table-container">
+                    <table class="invoice-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice</th>
+                                <th>Client</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="invoice-id">#INV-001</span></td>
+                                <td><div class="client-cell"><div class="client-avatar">TC</div> Tech Corp</div></td>
+                                <td class="amount">₹15,000</td>
+                                <td>Jan 22, 2026</td>
+                                <td><span class="status paid">Paid</span></td>
+                                <td class="actions"><button class="action-btn"><i class="fas fa-eye"></i></button><button class="action-btn"><i class="fas fa-download"></i></button><button class="action-btn"><i class="fas fa-ellipsis-v"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="invoice-id">#INV-002</span></td>
+                                <td><div class="client-cell"><div class="client-avatar">DS</div> Digital Solutions</div></td>
+                                <td class="amount">₹8,500</td>
+                                <td>Jan 20, 2026</td>
+                                <td><span class="status pending">Pending</span></td>
+                                <td class="actions"><button class="action-btn"><i class="fas fa-eye"></i></button><button class="action-btn"><i class="fas fa-download"></i></button><button class="action-btn"><i class="fas fa-ellipsis-v"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="invoice-id">#INV-003</span></td>
+                                <td><div class="client-cell"><div class="client-avatar">GS</div> Global Services</div></td>
+                                <td class="amount">₹22,000</td>
+                                <td>Jan 18, 2026</td>
+                                <td><span class="status paid">Paid</span></td>
+                                <td class="actions"><button class="action-btn"><i class="fas fa-eye"></i></button><button class="action-btn"><i class="fas fa-download"></i></button><button class="action-btn"><i class="fas fa-ellipsis-v"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="invoice-id">#INV-004</span></td>
+                                <td><div class="client-cell"><div class="client-avatar">SI</div> Startup Inc</div></td>
+                                <td class="amount">₹5,200</td>
+                                <td>Jan 15, 2026</td>
+                                <td><span class="status overdue">Overdue</span></td>
+                                <td class="actions"><button class="action-btn"><i class="fas fa-eye"></i></button><button class="action-btn"><i class="fas fa-download"></i></button><button class="action-btn"><i class="fas fa-ellipsis-v"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td><span class="invoice-id">#INV-005</span></td>
+                                <td><div class="client-cell"><div class="client-avatar">CM</div> Creative Media</div></td>
+                                <td class="amount">₹12,750</td>
+                                <td>Jan 12, 2026</td>
+                                <td><span class="status paid">Paid</span></td>
+                                <td class="actions"><button class="action-btn"><i class="fas fa-eye"></i></button><button class="action-btn"><i class="fas fa-download"></i></button><button class="action-btn"><i class="fas fa-ellipsis-v"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Revenue Chart -->
+            <section class="card chart-section">
+                <div class="card-header">
+                    <h2>Revenue Overview</h2>
+                    <div class="chart-filters">
+                        <button class="filter-btn active">Week</button>
+                        <button class="filter-btn">Month</button>
+                        <button class="filter-btn">Year</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Quick Actions & Top Clients -->
+            <section class="card quick-actions">
+                <div class="card-header"><h2>Quick Actions</h2></div>
+                <div class="actions-grid">
+                    <button class="quick-action-btn"><i class="fas fa-plus-circle"></i><span>Create Invoice</span></button>
+                    <button class="quick-action-btn"><i class="fas fa-user-plus"></i><span>Add Client</span></button>
+                    <button class="quick-action-btn"><i class="fas fa-paper-plane"></i><span>Send Reminder</span></button>
+                    <button class="quick-action-btn"><i class="fas fa-file-export"></i><span>Export Report</span></button>
+                </div>
+            </section>
+
+            <section class="card top-clients">
+                <div class="card-header"><h2>Top Clients</h2></div>
+                <div class="clients-list">
+                    <div class="client-item"><div class="client-avatar large">TC</div><div class="client-info"><span class="name">Tech Corp</span><span class="invoices">12 invoices</span></div><span class="client-revenue">₹1,45,000</span></div>
+                    <div class="client-item"><div class="client-avatar large">GS</div><div class="client-info"><span class="name">Global Services</span><span class="invoices">8 invoices</span></div><span class="client-revenue">₹98,500</span></div>
+                    <div class="client-item"><div class="client-avatar large">DS</div><div class="client-info"><span class="name">Digital Solutions</span><span class="invoices">6 invoices</span></div><span class="client-revenue">₹72,000</span></div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Create Invoice Modal -->
+    <div class="modal-overlay" id="invoiceModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Create New Invoice</h2>
+                <button class="close-btn" id="closeModal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group"><label>Client Name</label><select><option>Select Client</option><option>Tech Corp</option><option>Digital Solutions</option><option>Global Services</option></select></div>
+                    <div class="form-group"><label>Invoice Date</label><input type="date" value="2026-01-23"></div>
+                </div>
+                <div class="form-group"><label>Invoice Items</label>
+                    <div class="invoice-items">
+                        <div class="item-row"><input type="text" placeholder="Item description"><input type="number" placeholder="Qty" class="qty"><input type="number" placeholder="Rate" class="rate"><span class="item-total">₹0</span><button class="remove-item"><i class="fas fa-trash"></i></button></div>
+                    </div>
+                    <button class="add-item-btn"><i class="fas fa-plus"></i> Add Item</button>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Tax (%)</label><input type="number" value="18" id="taxInput"></div>
+                    <div class="form-group"><label>Discount (₹)</label><input type="number" value="0" id="discountInput"></div>
+                </div>
+                <div class="invoice-summary">
+                    <div class="summary-row"><span>Subtotal</span><span id="subtotal">₹0</span></div>
+                    <div class="summary-row"><span>Tax (18%)</span><span id="taxAmount">₹0</span></div>
+                    <div class="summary-row"><span>Discount</span><span id="discountAmount">-₹0</span></div>
+                    <div class="summary-row total"><span>Total</span><span id="totalAmount">₹0</span></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelBtn">Cancel</button>
+                <button class="btn-primary"><i class="fas fa-save"></i> Save Invoice</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
