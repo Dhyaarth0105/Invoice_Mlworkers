@@ -27,11 +27,12 @@
                     class="fas fa-th-large"></i><span>Dashboard</span></a>
             <a href="#" class="nav-item" data-view="manage-po"><i class="fas fa-shopping-cart"></i><span>Manage
                     PO</span></a>
-            <a href="#" class="nav-item"><i class="fas fa-file-invoice"></i><span>Invoices</span></a>
-            <a href="#" class="nav-item"><i class="fas fa-users"></i><span>Clients</span></a>
-            <a href="#" class="nav-item"><i class="fas fa-box"></i><span>Products</span></a>
-            <a href="#" class="nav-item"><i class="fas fa-chart-line"></i><span>Reports</span></a>
-            <a href="#" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+            <a href="#" class="nav-item" data-view="invoices"><i
+                    class="fas fa-file-invoice"></i><span>Invoices</span></a>
+            <a href="#" class="nav-item" data-view="clients"><i class="fas fa-users"></i><span>Clients</span></a>
+            <a href="#" class="nav-item" data-view="products"><i class="fas fa-box"></i><span>Products</span></a>
+            <a href="#" class="nav-item" data-view="reports"><i class="fas fa-chart-line"></i><span>Reports</span></a>
+            <a href="#" class="nav-item" data-view="settings"><i class="fas fa-cog"></i><span>Settings</span></a>
         </nav>
         <div class="sidebar-footer">
             <div class="user-info">
@@ -55,65 +56,272 @@
             <div class="header-right">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search invoices...">
+                    <input type="text" placeholder="Search...">
                 </div>
                 <button class="btn-icon"><i class="fas fa-bell"></i><span class="notification-badge">3</span></button>
                 <button class="btn-primary" id="createInvoiceBtn"><i class="fas fa-plus"></i> New Invoice</button>
             </div>
         </header>
 
-        <!-- Stats Cards -->
-        <section class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon blue"><i class="fas fa-file-invoice"></i></div>
-                <div class="stat-info">
-                    <span class="stat-value" data-target="156">0</span>
-                    <span class="stat-label">Total Invoices</span>
+        <!-- ========== DASHBOARD VIEW ========== -->
+        <section id="dashboard-view" class="page-view active">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-file-invoice"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value" data-target="156">0</span>
+                        <span class="stat-label">Total Invoices</span>
+                    </div>
+                    <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 12%</div>
                 </div>
-                <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 12%</div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value" data-target="89450" data-prefix="₹">₹0</span>
+                        <span class="stat-label">Paid Amount</span>
+                    </div>
+                    <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 8%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value" data-target="23500" data-prefix="₹">₹0</span>
+                        <span class="stat-label">Pending</span>
+                    </div>
+                    <div class="stat-trend down"><i class="fas fa-arrow-down"></i> 3%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value" data-target="48">0</span>
+                        <span class="stat-label">Active Clients</span>
+                    </div>
+                    <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 5%</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
-                <div class="stat-info">
-                    <span class="stat-value" data-target="89450" data-prefix="₹">₹0</span>
-                    <span class="stat-label">Paid Amount</span>
-                </div>
-                <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 8%</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
-                <div class="stat-info">
-                    <span class="stat-value" data-target="23500" data-prefix="₹">₹0</span>
-                    <span class="stat-label">Pending</span>
-                </div>
-                <div class="stat-trend down"><i class="fas fa-arrow-down"></i> 3%</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon purple"><i class="fas fa-users"></i></div>
-                <div class="stat-info">
-                    <span class="stat-value" data-target="48">0</span>
-                    <span class="stat-label">Active Clients</span>
-                </div>
-                <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 5%</div>
+
+            <!-- Main Grid -->
+            <div class="content-grid">
+                <!-- Recent Invoices -->
+                <section class="card invoices-section">
+                    <div class="card-header">
+                        <h2>Recent Invoices</h2>
+                        <a href="#" class="view-all" data-view="invoices">View All <i
+                                class="fas fa-arrow-right"></i></a>
+                    </div>
+                    <div class="table-container">
+                        <table class="invoice-table">
+                            <thead>
+                                <tr>
+                                    <th>Invoice</th>
+                                    <th>Client</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td data-label="Invoice"><span class="invoice-id">#INV-001</span></td>
+                                    <td data-label="Client">
+                                        <div class="client-cell">
+                                            <div class="client-avatar">TC</div> Tech Corp
+                                        </div>
+                                    </td>
+                                    <td data-label="Amount" class="amount">₹15,000</td>
+                                    <td data-label="Date">Jan 22, 2026</td>
+                                    <td data-label="Status"><span class="status paid">Paid</span></td>
+                                    <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                                class="fas fa-eye"></i></button><button class="action-btn"><i
+                                                class="fas fa-download"></i></button></td>
+                                </tr>
+                                <tr>
+                                    <td data-label="Invoice"><span class="invoice-id">#INV-002</span></td>
+                                    <td data-label="Client">
+                                        <div class="client-cell">
+                                            <div class="client-avatar">DS</div> Digital Solutions
+                                        </div>
+                                    </td>
+                                    <td data-label="Amount" class="amount">₹8,500</td>
+                                    <td data-label="Date">Jan 20, 2026</td>
+                                    <td data-label="Status"><span class="status pending">Pending</span></td>
+                                    <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                                class="fas fa-eye"></i></button><button class="action-btn"><i
+                                                class="fas fa-download"></i></button></td>
+                                </tr>
+                                <tr>
+                                    <td data-label="Invoice"><span class="invoice-id">#INV-003</span></td>
+                                    <td data-label="Client">
+                                        <div class="client-cell">
+                                            <div class="client-avatar">GS</div> Global Services
+                                        </div>
+                                    </td>
+                                    <td data-label="Amount" class="amount">₹22,000</td>
+                                    <td data-label="Date">Jan 18, 2026</td>
+                                    <td data-label="Status"><span class="status paid">Paid</span></td>
+                                    <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                                class="fas fa-eye"></i></button><button class="action-btn"><i
+                                                class="fas fa-download"></i></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Revenue Chart -->
+                <section class="card chart-section">
+                    <div class="card-header">
+                        <h2>Revenue Overview</h2>
+                        <div class="chart-filters">
+                            <button class="filter-btn active">Week</button>
+                            <button class="filter-btn">Month</button>
+                            <button class="filter-btn">Year</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Quick Actions -->
+                <section class="card quick-actions">
+                    <div class="card-header">
+                        <h2>Quick Actions</h2>
+                    </div>
+                    <div class="actions-grid">
+                        <button class="quick-action-btn" id="quickNewInvoice"><i
+                                class="fas fa-plus-circle"></i><span>Create Invoice</span></button>
+                        <button class="quick-action-btn" data-view="clients"><i class="fas fa-user-plus"></i><span>Add
+                                Client</span></button>
+                        <button class="quick-action-btn" data-view="manage-po"><i
+                                class="fas fa-shopping-cart"></i><span>Manage PO</span></button>
+                        <button class="quick-action-btn" data-view="reports"><i
+                                class="fas fa-file-export"></i><span>Export Report</span></button>
+                    </div>
+                </section>
+
+                <!-- Top Clients -->
+                <section class="card top-clients">
+                    <div class="card-header">
+                        <h2>Top Clients</h2>
+                    </div>
+                    <div class="clients-list">
+                        <div class="client-item">
+                            <div class="client-avatar large">TC</div>
+                            <div class="client-info"><span class="name">Tech Corp</span><span class="invoices">12
+                                    invoices</span></div><span class="client-revenue">₹1,45,000</span>
+                        </div>
+                        <div class="client-item">
+                            <div class="client-avatar large">GS</div>
+                            <div class="client-info"><span class="name">Global Services</span><span class="invoices">8
+                                    invoices</span></div><span class="client-revenue">₹98,500</span>
+                        </div>
+                        <div class="client-item">
+                            <div class="client-avatar large">DS</div>
+                            <div class="client-info"><span class="name">Digital Solutions</span><span class="invoices">6
+                                    invoices</span></div><span class="client-revenue">₹72,000</span>
+                        </div>
+                    </div>
+                </section>
             </div>
         </section>
 
-        <!-- Main Grid -->
-        <div class="content-grid">
-            <!-- Recent Invoices -->
-            <section class="card invoices-section">
+        <!-- ========== MANAGE PO VIEW ========== -->
+        <section id="manage-po-view" class="page-view">
+            <div class="card">
                 <div class="card-header">
-                    <h2>Recent Invoices</h2>
-                    <a href="#" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                    <h2>Purchase Orders</h2>
+                    <button class="btn-primary" id="addPOBtn"><i class="fas fa-plus"></i> Add New PO</button>
+                </div>
+                <div class="table-container">
+                    <table class="invoice-table" id="poTable">
+                        <thead>
+                            <tr>
+                                <th>PO Number</th>
+                                <th>Main Line #</th>
+                                <th>Main Line Description</th>
+                                <th>Subline #</th>
+                                <th>Subline Description</th>
+                                <th>Qty</th>
+                                <th>UOM</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="poTableBody">
+                            <tr>
+                                <td data-label="PO Number"><span class="invoice-id">PO-2026-001</span></td>
+                                <td data-label="Main Line #">001</td>
+                                <td data-label="Main Line Desc">IT Infrastructure Setup</td>
+                                <td data-label="Subline #">001.1</td>
+                                <td data-label="Subline Desc">Cloud Servers (AWS)</td>
+                                <td data-label="Qty">10</td>
+                                <td data-label="UOM">Instances</td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-edit"></i></button><button class="action-btn"><i
+                                            class="fas fa-trash"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td data-label="PO Number"><span class="invoice-id">PO-2026-002</span></td>
+                                <td data-label="Main Line #">002</td>
+                                <td data-label="Main Line Desc">Software Licensing</td>
+                                <td data-label="Subline #">002.1</td>
+                                <td data-label="Subline Desc">Microsoft 365 Enterprise</td>
+                                <td data-label="Qty">50</td>
+                                <td data-label="UOM">Licenses</td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-edit"></i></button><button class="action-btn"><i
+                                            class="fas fa-trash"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td data-label="PO Number"><span class="invoice-id">PO-2026-003</span></td>
+                                <td data-label="Main Line #">003</td>
+                                <td data-label="Main Line Desc">Office Equipment</td>
+                                <td data-label="Subline #">003.1</td>
+                                <td data-label="Subline Desc">Dell Workstations</td>
+                                <td data-label="Qty">25</td>
+                                <td data-label="UOM">Units</td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-edit"></i></button><button class="action-btn"><i
+                                            class="fas fa-trash"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td data-label="PO Number"><span class="invoice-id">PO-2026-003</span></td>
+                                <td data-label="Main Line #">003</td>
+                                <td data-label="Main Line Desc">Office Equipment</td>
+                                <td data-label="Subline #">003.2</td>
+                                <td data-label="Subline Desc">HP Monitors 27"</td>
+                                <td data-label="Qty">50</td>
+                                <td data-label="UOM">Units</td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-edit"></i></button><button class="action-btn"><i
+                                            class="fas fa-trash"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========== INVOICES VIEW ========== -->
+        <section id="invoices-view" class="page-view">
+            <div class="card">
+                <div class="card-header">
+                    <h2>All Invoices</h2>
+                    <button class="btn-primary" id="newInvoiceBtnAlt"><i class="fas fa-plus"></i> Create
+                        Invoice</button>
                 </div>
                 <div class="table-container">
                     <table class="invoice-table">
                         <thead>
                             <tr>
-                                <th>Invoice</th>
+                                <th>Invoice #</th>
                                 <th>Client</th>
+                                <th>PO Reference</th>
                                 <th>Amount</th>
                                 <th>Date</th>
+                                <th>Due Date</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -126,13 +334,15 @@
                                         <div class="client-avatar">TC</div> Tech Corp
                                     </div>
                                 </td>
+                                <td data-label="PO">PO-2026-001</td>
                                 <td data-label="Amount" class="amount">₹15,000</td>
                                 <td data-label="Date">Jan 22, 2026</td>
+                                <td data-label="Due">Feb 22, 2026</td>
                                 <td data-label="Status"><span class="status paid">Paid</span></td>
                                 <td data-label="Actions" class="actions"><button class="action-btn"><i
                                             class="fas fa-eye"></i></button><button class="action-btn"><i
                                             class="fas fa-download"></i></button><button class="action-btn"><i
-                                            class="fas fa-ellipsis-v"></i></button></td>
+                                            class="fas fa-print"></i></button></td>
                             </tr>
                             <tr>
                                 <td data-label="Invoice"><span class="invoice-id">#INV-002</span></td>
@@ -141,13 +351,15 @@
                                         <div class="client-avatar">DS</div> Digital Solutions
                                     </div>
                                 </td>
+                                <td data-label="PO">PO-2026-002</td>
                                 <td data-label="Amount" class="amount">₹8,500</td>
                                 <td data-label="Date">Jan 20, 2026</td>
+                                <td data-label="Due">Feb 20, 2026</td>
                                 <td data-label="Status"><span class="status pending">Pending</span></td>
                                 <td data-label="Actions" class="actions"><button class="action-btn"><i
                                             class="fas fa-eye"></i></button><button class="action-btn"><i
                                             class="fas fa-download"></i></button><button class="action-btn"><i
-                                            class="fas fa-ellipsis-v"></i></button></td>
+                                            class="fas fa-print"></i></button></td>
                             </tr>
                             <tr>
                                 <td data-label="Invoice"><span class="invoice-id">#INV-003</span></td>
@@ -156,13 +368,15 @@
                                         <div class="client-avatar">GS</div> Global Services
                                     </div>
                                 </td>
+                                <td data-label="PO">PO-2026-003</td>
                                 <td data-label="Amount" class="amount">₹22,000</td>
                                 <td data-label="Date">Jan 18, 2026</td>
+                                <td data-label="Due">Feb 18, 2026</td>
                                 <td data-label="Status"><span class="status paid">Paid</span></td>
                                 <td data-label="Actions" class="actions"><button class="action-btn"><i
                                             class="fas fa-eye"></i></button><button class="action-btn"><i
                                             class="fas fa-download"></i></button><button class="action-btn"><i
-                                            class="fas fa-ellipsis-v"></i></button></td>
+                                            class="fas fa-print"></i></button></td>
                             </tr>
                             <tr>
                                 <td data-label="Invoice"><span class="invoice-id">#INV-004</span></td>
@@ -171,13 +385,15 @@
                                         <div class="client-avatar">SI</div> Startup Inc
                                     </div>
                                 </td>
+                                <td data-label="PO">PO-2026-001</td>
                                 <td data-label="Amount" class="amount">₹5,200</td>
                                 <td data-label="Date">Jan 15, 2026</td>
+                                <td data-label="Due">Jan 30, 2026</td>
                                 <td data-label="Status"><span class="status overdue">Overdue</span></td>
                                 <td data-label="Actions" class="actions"><button class="action-btn"><i
                                             class="fas fa-eye"></i></button><button class="action-btn"><i
                                             class="fas fa-download"></i></button><button class="action-btn"><i
-                                            class="fas fa-ellipsis-v"></i></button></td>
+                                            class="fas fa-print"></i></button></td>
                             </tr>
                             <tr>
                                 <td data-label="Invoice"><span class="invoice-id">#INV-005</span></td>
@@ -186,110 +402,401 @@
                                         <div class="client-avatar">CM</div> Creative Media
                                     </div>
                                 </td>
+                                <td data-label="PO">PO-2026-002</td>
                                 <td data-label="Amount" class="amount">₹12,750</td>
                                 <td data-label="Date">Jan 12, 2026</td>
+                                <td data-label="Due">Feb 12, 2026</td>
                                 <td data-label="Status"><span class="status paid">Paid</span></td>
                                 <td data-label="Actions" class="actions"><button class="action-btn"><i
                                             class="fas fa-eye"></i></button><button class="action-btn"><i
                                             class="fas fa-download"></i></button><button class="action-btn"><i
-                                            class="fas fa-ellipsis-v"></i></button></td>
+                                            class="fas fa-print"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td data-label="Invoice"><span class="invoice-id">#INV-006</span></td>
+                                <td data-label="Client">
+                                    <div class="client-cell">
+                                        <div class="client-avatar">AB</div> Alpha Business
+                                    </div>
+                                </td>
+                                <td data-label="PO">PO-2026-003</td>
+                                <td data-label="Amount" class="amount">₹35,000</td>
+                                <td data-label="Date">Jan 10, 2026</td>
+                                <td data-label="Due">Feb 10, 2026</td>
+                                <td data-label="Status"><span class="status pending">Pending</span></td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-eye"></i></button><button class="action-btn"><i
+                                            class="fas fa-download"></i></button><button class="action-btn"><i
+                                            class="fas fa-print"></i></button></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <!-- Revenue Chart -->
-            <section class="card chart-section">
+        <!-- ========== CLIENTS VIEW ========== -->
+        <section id="clients-view" class="page-view">
+            <div class="card">
                 <div class="card-header">
-                    <h2>Revenue Overview</h2>
-                    <div class="chart-filters">
-                        <button class="filter-btn active">Week</button>
-                        <button class="filter-btn">Month</button>
-                        <button class="filter-btn">Year</button>
-                    </div>
+                    <h2>Client Management</h2>
+                    <button class="btn-primary" id="addClientBtn"><i class="fas fa-plus"></i> Add Client</button>
                 </div>
-                <div class="chart-container">
-                    <canvas id="revenueChart"></canvas>
+                <div class="table-container">
+                    <table class="invoice-table">
+                        <thead>
+                            <tr>
+                                <th>Client</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Total Invoices</th>
+                                <th>Total Revenue</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td data-label="Client">
+                                    <div class="client-cell">
+                                        <div class="client-avatar">TC</div> Tech Corp
+                                    </div>
+                                </td>
+                                <td data-label="Email">accounts@techcorp.com</td>
+                                <td data-label="Phone">+91 98765 43210</td>
+                                <td data-label="Invoices">12</td>
+                                <td data-label="Revenue" class="amount">₹1,45,000</td>
+                                <td data-label="Status"><span class="status paid">Active</span></td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-eye"></i></button><button class="action-btn"><i
+                                            class="fas fa-edit"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td data-label="Client">
+                                    <div class="client-cell">
+                                        <div class="client-avatar">DS</div> Digital Solutions
+                                    </div>
+                                </td>
+                                <td data-label="Email">billing@digitalsol.in</td>
+                                <td data-label="Phone">+91 87654 32109</td>
+                                <td data-label="Invoices">6</td>
+                                <td data-label="Revenue" class="amount">₹72,000</td>
+                                <td data-label="Status"><span class="status paid">Active</span></td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-eye"></i></button><button class="action-btn"><i
+                                            class="fas fa-edit"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td data-label="Client">
+                                    <div class="client-cell">
+                                        <div class="client-avatar">GS</div> Global Services
+                                    </div>
+                                </td>
+                                <td data-label="Email">finance@globalserv.com</td>
+                                <td data-label="Phone">+91 76543 21098</td>
+                                <td data-label="Invoices">8</td>
+                                <td data-label="Revenue" class="amount">₹98,500</td>
+                                <td data-label="Status"><span class="status paid">Active</span></td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-eye"></i></button><button class="action-btn"><i
+                                            class="fas fa-edit"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td data-label="Client">
+                                    <div class="client-cell">
+                                        <div class="client-avatar">SI</div> Startup Inc
+                                    </div>
+                                </td>
+                                <td data-label="Email">hello@startupinc.io</td>
+                                <td data-label="Phone">+91 65432 10987</td>
+                                <td data-label="Invoices">3</td>
+                                <td data-label="Revenue" class="amount">₹18,500</td>
+                                <td data-label="Status"><span class="status pending">Pending</span></td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-eye"></i></button><button class="action-btn"><i
+                                            class="fas fa-edit"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td data-label="Client">
+                                    <div class="client-cell">
+                                        <div class="client-avatar">CM</div> Creative Media
+                                    </div>
+                                </td>
+                                <td data-label="Email">accounts@creativemedia.co</td>
+                                <td data-label="Phone">+91 54321 09876</td>
+                                <td data-label="Invoices">5</td>
+                                <td data-label="Revenue" class="amount">₹45,000</td>
+                                <td data-label="Status"><span class="status paid">Active</span></td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-eye"></i></button><button class="action-btn"><i
+                                            class="fas fa-edit"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td data-label="Client">
+                                    <div class="client-cell">
+                                        <div class="client-avatar">AB</div> Alpha Business
+                                    </div>
+                                </td>
+                                <td data-label="Email">ap@alphabiz.com</td>
+                                <td data-label="Phone">+91 43210 98765</td>
+                                <td data-label="Invoices">4</td>
+                                <td data-label="Revenue" class="amount">₹68,000</td>
+                                <td data-label="Status"><span class="status paid">Active</span></td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-eye"></i></button><button class="action-btn"><i
+                                            class="fas fa-edit"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <!-- Quick Actions & Top Clients -->
-            <section class="card quick-actions">
+        <!-- ========== PRODUCTS VIEW ========== -->
+        <section id="products-view" class="page-view">
+            <div class="card">
                 <div class="card-header">
-                    <h2>Quick Actions</h2>
+                    <h2>Products & Services</h2>
+                    <button class="btn-primary"><i class="fas fa-plus"></i> Add Product</button>
                 </div>
-                <div class="actions-grid">
-                    <button class="quick-action-btn"><i class="fas fa-plus-circle"></i><span>Create
-                            Invoice</span></button>
-                    <button class="quick-action-btn"><i class="fas fa-user-plus"></i><span>Add Client</span></button>
-                    <button class="quick-action-btn"><i class="fas fa-paper-plane"></i><span>Send
-                            Reminder</span></button>
-                    <button class="quick-action-btn"><i class="fas fa-file-export"></i><span>Export
-                            Report</span></button>
+                <div class="table-container">
+                    <table class="invoice-table">
+                        <thead>
+                            <tr>
+                                <th>Product/Service</th>
+                                <th>SKU</th>
+                                <th>Category</th>
+                                <th>Unit Price</th>
+                                <th>Tax Rate</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td data-label="Product">Cloud Server Setup</td>
+                                <td data-label="SKU">SRV-001</td>
+                                <td data-label="Category">IT Services</td>
+                                <td data-label="Price" class="amount">₹15,000/instance</td>
+                                <td data-label="Tax">18% GST</td>
+                                <td data-label="Status"><span class="status paid">Active</span></td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-edit"></i></button><button class="action-btn"><i
+                                            class="fas fa-trash"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td data-label="Product">Software License (Annual)</td>
+                                <td data-label="SKU">LIC-002</td>
+                                <td data-label="Category">Software</td>
+                                <td data-label="Price" class="amount">₹2,500/user</td>
+                                <td data-label="Tax">18% GST</td>
+                                <td data-label="Status"><span class="status paid">Active</span></td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-edit"></i></button><button class="action-btn"><i
+                                            class="fas fa-trash"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td data-label="Product">Technical Support (Monthly)</td>
+                                <td data-label="SKU">SUP-003</td>
+                                <td data-label="Category">Support</td>
+                                <td data-label="Price" class="amount">₹8,000/month</td>
+                                <td data-label="Tax">18% GST</td>
+                                <td data-label="Status"><span class="status paid">Active</span></td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-edit"></i></button><button class="action-btn"><i
+                                            class="fas fa-trash"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td data-label="Product">Dell Workstation</td>
+                                <td data-label="SKU">HW-004</td>
+                                <td data-label="Category">Hardware</td>
+                                <td data-label="Price" class="amount">₹85,000/unit</td>
+                                <td data-label="Tax">28% GST</td>
+                                <td data-label="Status"><span class="status paid">Active</span></td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-edit"></i></button><button class="action-btn"><i
+                                            class="fas fa-trash"></i></button></td>
+                            </tr>
+                            <tr>
+                                <td data-label="Product">Network Setup</td>
+                                <td data-label="SKU">NET-005</td>
+                                <td data-label="Category">IT Services</td>
+                                <td data-label="Price" class="amount">₹25,000/project</td>
+                                <td data-label="Tax">18% GST</td>
+                                <td data-label="Status"><span class="status pending">Draft</span></td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-edit"></i></button><button class="action-btn"><i
+                                            class="fas fa-trash"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <section class="card top-clients">
-                <div class="card-header">
-                    <h2>Top Clients</h2>
+        <!-- ========== REPORTS VIEW ========== -->
+        <section id="reports-view" class="page-view">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-rupee-sign"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value">₹4,47,000</span>
+                        <span class="stat-label">Total Revenue (YTD)</span>
+                    </div>
+                    <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 24%</div>
                 </div>
-                <div class="clients-list">
-                    <div class="client-item">
-                        <div class="client-avatar large">TC</div>
-                        <div class="client-info"><span class="name">Tech Corp</span><span class="invoices">12
-                                invoices</span></div><span class="client-revenue">₹1,45,000</span>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-chart-pie"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value">78%</span>
+                        <span class="stat-label">Collection Rate</span>
                     </div>
-                    <div class="client-item">
-                        <div class="client-avatar large">GS</div>
-                        <div class="client-info"><span class="name">Global Services</span><span class="invoices">8
-                                invoices</span></div><span class="client-revenue">₹98,500</span>
-                    </div>
-                    <div class="client-item">
-                        <div class="client-avatar large">DS</div>
-                        <div class="client-info"><span class="name">Digital Solutions</span><span class="invoices">6
-                                invoices</span></div><span class="client-revenue">₹72,000</span>
-                    </div>
+                    <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 5%</div>
                 </div>
-            </section>
-            <!-- PO Management Section (Initially Hidden) -->
-            <section id="manage-po-section" style="display: none; grid-column: 1 / -1;">
-                <div class="card">
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value">12 Days</span>
+                        <span class="stat-label">Avg. Payment Time</span>
+                    </div>
+                    <div class="stat-trend up"><i class="fas fa-arrow-down"></i> 2 days</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-file-invoice"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-value">156</span>
+                        <span class="stat-label">Invoices Generated</span>
+                    </div>
+                    <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 18%</div>
+                </div>
+            </div>
+
+            <div class="content-grid">
+                <section class="card" style="grid-column: 1 / -1;">
                     <div class="card-header">
-                        <h2>Purchase Orders</h2>
-                        <button class="btn-primary" id="addPOBtn"><i class="fas fa-plus"></i> Add New PO</button>
+                        <h2>Monthly Revenue Trend</h2>
+                        <button class="btn-primary"><i class="fas fa-download"></i> Export Report</button>
                     </div>
-                    <div class="table-container">
-                        <table class="invoice-table" id="poTable">
-                            <thead>
-                                <tr>
-                                    <th>PO Number</th>
-                                    <th>Main Item</th>
-                                    <th>Subline</th>
-                                    <th>Qty</th>
-                                    <th>UOM</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- POs will be added here -->
-                                <tr>
-                                    <td data-label="PO Number"><span class="invoice-id">#PO-2026-001</span></td>
-                                    <td data-label="Main Item">IT Infrastructure Setup</td>
-                                    <td data-label="Subline">Cloud Servers (AWS)</td>
-                                    <td data-label="Qty">10</td>
-                                    <td data-label="UOM">Instances</td>
-                                    <td data-label="Actions" class="actions">
-                                        <button class="action-btn"><i class="fas fa-edit"></i></button>
-                                        <button class="action-btn"><i class="fas fa-trash"></i></button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="reportChart"></canvas>
                     </div>
-                </div>
-            </section>
-        </div>
+                </section>
+
+                <section class="card">
+                    <div class="card-header">
+                        <h2>Invoice Status Breakdown</h2>
+                    </div>
+                    <div class="clients-list">
+                        <div class="client-item">
+                            <div class="stat-icon green" style="width:40px;height:40px;"><i class="fas fa-check"></i>
+                            </div>
+                            <div class="client-info"><span class="name">Paid Invoices</span><span class="invoices">118
+                                    invoices</span></div><span class="client-revenue">₹3,52,000</span>
+                        </div>
+                        <div class="client-item">
+                            <div class="stat-icon orange" style="width:40px;height:40px;"><i class="fas fa-clock"></i>
+                            </div>
+                            <div class="client-info"><span class="name">Pending Invoices</span><span class="invoices">28
+                                    invoices</span></div><span class="client-revenue">₹78,000</span>
+                        </div>
+                        <div class="client-item">
+                            <div class="stat-icon"
+                                style="width:40px;height:40px;background:rgba(239, 68, 68, 0.15);color:#ef4444;"><i
+                                    class="fas fa-exclamation"></i></div>
+                            <div class="client-info"><span class="name">Overdue Invoices</span><span class="invoices">10
+                                    invoices</span></div><span class="client-revenue">₹17,000</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="card-header">
+                        <h2>Top Revenue Clients</h2>
+                    </div>
+                    <div class="clients-list">
+                        <div class="client-item">
+                            <div class="client-avatar large">TC</div>
+                            <div class="client-info"><span class="name">Tech Corp</span><span class="invoices">12
+                                    invoices</span></div><span class="client-revenue">₹1,45,000</span>
+                        </div>
+                        <div class="client-item">
+                            <div class="client-avatar large">GS</div>
+                            <div class="client-info"><span class="name">Global Services</span><span class="invoices">8
+                                    invoices</span></div><span class="client-revenue">₹98,500</span>
+                        </div>
+                        <div class="client-item">
+                            <div class="client-avatar large">AB</div>
+                            <div class="client-info"><span class="name">Alpha Business</span><span class="invoices">4
+                                    invoices</span></div><span class="client-revenue">₹68,000</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <!-- ========== SETTINGS VIEW ========== -->
+        <section id="settings-view" class="page-view">
+            <div class="content-grid">
+                <section class="card" style="grid-column: 1 / -1;">
+                    <div class="card-header">
+                        <h2>Company Settings</h2>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <div class="form-group"><label>Company Name</label><input type="text"
+                                    value="ABC Technologies Pvt. Ltd."></div>
+                            <div class="form-group"><label>GSTIN</label><input type="text" value="27AABCU9603R1ZM">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Address</label><input type="text"
+                                    value="123, Tech Park, Electronic City, Bangalore"></div>
+                            <div class="form-group"><label>PAN</label><input type="text" value="AABCU9603R"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Email</label><input type="email"
+                                    value="accounts@abctech.com"></div>
+                            <div class="form-group"><label>Phone</label><input type="text" value="+91 80 2561 4589">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="card-header">
+                        <h2>Invoice Settings</h2>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group"><label>Invoice Prefix</label><input type="text" value="INV-"></div>
+                        <div class="form-group"><label>Default Due Days</label><input type="number" value="30"></div>
+                        <div class="form-group"><label>Default Tax Rate (%)</label><input type="number" value="18">
+                        </div>
+                        <div class="form-group"><label>Currency</label><select>
+                                <option selected>₹ INR (Indian Rupee)</option>
+                                <option>$ USD</option>
+                                <option>€ EUR</option>
+                            </select></div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="card-header">
+                        <h2>Bank Details</h2>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group"><label>Bank Name</label><input type="text" value="HDFC Bank"></div>
+                        <div class="form-group"><label>Account Number</label><input type="text" value="50100123456789">
+                        </div>
+                        <div class="form-group"><label>IFSC Code</label><input type="text" value="HDFC0001234"></div>
+                        <div class="form-group"><label>Branch</label><input type="text"
+                                value="Electronic City, Bangalore"></div>
+                    </div>
+                </section>
+            </div>
+            <div style="padding: 1rem; text-align: right;"><button class="btn-primary"><i class="fas fa-save"></i> Save
+                    All Settings</button></div>
+        </section>
+
     </main>
 
     <!-- Create Invoice Modal -->
@@ -301,20 +808,25 @@
             </div>
             <div class="modal-body">
                 <div class="form-row">
-                    <div class="form-group"><label>Client Name</label><select>
+                    <div class="form-group"><label>Client Name</label><select id="invoiceClientSelect">
                             <option>Select Client</option>
                             <option>Tech Corp</option>
                             <option>Digital Solutions</option>
                             <option>Global Services</option>
+                            <option>Startup Inc</option>
+                            <option>Creative Media</option>
+                            <option>Alpha Business</option>
                         </select></div>
                     <div class="form-group"><label>Select PO (Purchase Order)</label><select id="invoicePOSelect">
                             <option value="">Select PO</option>
-                            <option value="PO-2026-001">#PO-2026-001 - Servers</option>
-                            <option value="PO-2026-002">#PO-2026-002 - Software</option>
+                            <option value="PO-2026-001">PO-2026-001 - IT Infrastructure</option>
+                            <option value="PO-2026-002">PO-2026-002 - Software Licensing</option>
+                            <option value="PO-2026-003">PO-2026-003 - Office Equipment</option>
                         </select></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label>Invoice Date</label><input type="date" value="2026-01-23"></div>
+                    <div class="form-group"><label>Invoice Date</label><input type="date" value="2026-01-24"></div>
+                    <div class="form-group"><label>Due Date</label><input type="date" value="2026-02-24"></div>
                 </div>
                 <div class="form-group"><label>Invoice Items</label>
                     <div class="invoice-items">
@@ -356,27 +868,27 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label>PO Number</label>
-                            <input type="text" id="poNumber" placeholder="PO-XXXX-XXX" required>
+                            <input type="text" id="poNumber" placeholder="e.g., PO-2026-004" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label>PO Main Line Item Number</label>
-                            <input type="text" id="poMainLineNum" placeholder="e.g. 001" required>
+                            <input type="text" id="poMainLineNum" placeholder="e.g., 004" required>
                         </div>
                         <div class="form-group">
                             <label>PO Main Line Item Description</label>
-                            <input type="text" id="poMainLineDesc" placeholder="Major category description" required>
+                            <input type="text" id="poMainLineDesc" placeholder="e.g., Consulting Services" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label>PO Subline Item Number</label>
-                            <input type="text" id="poSublineNum" placeholder="e.g. 001.1" required>
+                            <input type="text" id="poSublineNum" placeholder="e.g., 004.1" required>
                         </div>
                         <div class="form-group">
                             <label>PO Subline Item Description</label>
-                            <input type="text" id="poSublineDesc" placeholder="Specific item details" required>
+                            <input type="text" id="poSublineDesc" placeholder="e.g., Senior Consultant" required>
                         </div>
                     </div>
                     <div class="form-row">
@@ -389,9 +901,12 @@
                             <select id="poUOM">
                                 <option value="Units">Units</option>
                                 <option value="Hours">Hours</option>
+                                <option value="Days">Days</option>
+                                <option value="Months">Months</option>
+                                <option value="Licenses">Licenses</option>
+                                <option value="Instances">Instances</option>
                                 <option value="Kg">Kg</option>
                                 <option value="Lot">Lot</option>
-                                <option value="Instances">Instances</option>
                             </select>
                         </div>
                     </div>

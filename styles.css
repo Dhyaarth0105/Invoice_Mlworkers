@@ -32,6 +32,15 @@ body {
     overflow-x: hidden;
 }
 
+/* Page Views */
+.page-view {
+    display: none;
+}
+
+.page-view.active {
+    display: block;
+}
+
 /* Mobile Menu Button */
 .mobile-menu-btn {
     display: none;
