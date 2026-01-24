@@ -342,69 +342,70 @@
                 <button class="btn-primary"><i class="fas fa-save"></i> Save Invoice</button>
             </div>
         </div>
-        <!-- Create PO Modal -->
-        <div class="modal-overlay" id="poModal">
-            <div class="modal">
-                <div class="modal-header">
-                    <h2>Add New Purchase Order</h2>
-                    <button class="close-btn" id="closePOModal"><i class="fas fa-times"></i></button>
-                </div>
-                <div class="modal-body">
-                    <form id="poForm">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>PO Number</label>
-                                <input type="text" id="poNumber" placeholder="PO-XXXX-XXX" required>
-                            </div>
+    </div>
+
+    <!-- Create PO Modal -->
+    <div class="modal-overlay" id="poModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Add New Purchase Order</h2>
+                <button class="close-btn" id="closePOModal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="poForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>PO Number</label>
+                            <input type="text" id="poNumber" placeholder="PO-XXXX-XXX" required>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>PO Main Line Item Number</label>
-                                <input type="text" id="poMainLineNum" placeholder="e.g. 001" required>
-                            </div>
-                            <div class="form-group">
-                                <label>PO Main Line Item Description</label>
-                                <input type="text" id="poMainLineDesc" placeholder="Major category description"
-                                    required>
-                            </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>PO Main Line Item Number</label>
+                            <input type="text" id="poMainLineNum" placeholder="e.g. 001" required>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>PO Subline Item Number</label>
-                                <input type="text" id="poSublineNum" placeholder="e.g. 001.1" required>
-                            </div>
-                            <div class="form-group">
-                                <label>PO Subline Item Description</label>
-                                <input type="text" id="poSublineDesc" placeholder="Specific item details" required>
-                            </div>
+                        <div class="form-group">
+                            <label>PO Main Line Item Description</label>
+                            <input type="text" id="poMainLineDesc" placeholder="Major category description" required>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>PO Subline Qty</label>
-                                <input type="number" id="poQty" value="1" required>
-                            </div>
-                            <div class="form-group">
-                                <label>UOM (Unit of Measurement)</label>
-                                <select id="poUOM">
-                                    <option value="Units">Units</option>
-                                    <option value="Hours">Hours</option>
-                                    <option value="Kg">Kg</option>
-                                    <option value="Lot">Lot</option>
-                                    <option value="Instances">Instances</option>
-                                </select>
-                            </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>PO Subline Item Number</label>
+                            <input type="text" id="poSublineNum" placeholder="e.g. 001.1" required>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn-secondary" id="cancelPOBtn">Cancel</button>
-                    <button class="btn-primary" id="savePOBtn"><i class="fas fa-save"></i> Save PO</button>
-                </div>
+                        <div class="form-group">
+                            <label>PO Subline Item Description</label>
+                            <input type="text" id="poSublineDesc" placeholder="Specific item details" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>PO Subline Qty</label>
+                            <input type="number" id="poQty" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>UOM (Unit of Measurement)</label>
+                            <select id="poUOM">
+                                <option value="Units">Units</option>
+                                <option value="Hours">Hours</option>
+                                <option value="Kg">Kg</option>
+                                <option value="Lot">Lot</option>
+                                <option value="Instances">Instances</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelPOBtn">Cancel</button>
+                <button class="btn-primary" id="savePOBtn"><i class="fas fa-save"></i> Save PO</button>
             </div>
         </div>
+    </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
 </body>
 
 </html>
