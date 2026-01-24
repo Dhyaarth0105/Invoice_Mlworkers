@@ -22,7 +22,7 @@ def user_login(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            messages.success(request, f'Welcome back, {user.get_full_name() or user.username}!')
+            # Welcome message removed - not needed on dashboard
             return redirect('invoices:dashboard')
         else:
             messages.error(request, 'Invalid username or password.')
@@ -226,5 +226,5 @@ def resend_otp(request):
 def user_logout(request):
     """Handle user logout"""
     logout(request)
-    messages.success(request, 'You have been logged out successfully.')
+    # No message needed - user is redirected to login page
     return redirect('accounts:login')
