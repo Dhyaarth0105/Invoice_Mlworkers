@@ -228,6 +228,53 @@ class Invoice(models.Model):
             'DRAFT': 'draft',
         }
         return status_classes.get(self.status, 'pending')
+    
+    def get_total_paid(self):
+        """Get total amount paid (excluding on-hold payments)"""
+        from .models import Payment
+        return sum(
+            p.net_amount for p in Payment.objects.filter(
+                invoice=self, 
+                status='RECEIVED', 
+                is_on_hold=False
+            )
+        )
+    
+    def get_total_on_hold(self):
+        """Get total amount on hold"""
+        return sum(
+            p.net_amount for p in self.payments.filter(
+                is_on_hold=True
+            )
+        )
+    
+    def get_outstanding_amount(self):
+        """Get outstanding amount"""
+        return self.total - self.get_total_paid()
+    
+    def get_payment_status(self):
+        """Get payment status based on payments"""
+        paid = self.get_total_paid()
+        if paid == 0:
+            return 'UNPAID'
+        elif paid >= self.total:
+            return 'PAID'
+        elif paid > 0:
+            return 'PARTIAL'
+        return 'UNPAID'
+    
+    def update_status_from_payments(self):
+        """Update invoice status based on payment status"""
+        payment_status = self.get_payment_status()
+        if payment_status == 'PAID' and self.status != 'PAID':
+            self.status = 'PAID'
+            self.save(update_fields=['status'])
+        elif payment_status == 'PARTIAL' and self.status == 'PAID':
+            # Don't downgrade from PAID to PARTIAL automatically
+            pass
+        elif payment_status == 'UNPAID' and self.status == 'PAID':
+            # Don't downgrade from PAID to UNPAID automatically
+            pass
 
 
 class InvoiceItem(models.Model):
@@ -348,6 +395,99 @@ class Company(models.Model):
         
         # Format with leading zeros (e.g., 001, 002, 010, 100)
         return f"{prefix}{current_year}-{next_number:03d}"
+
+
+class Payment(models.Model):
+    """Payment tracking for invoices"""
+    PAYMENT_STATUS_CHOICES = [
+        ('RECEIVED', 'Received'),
+        ('ON_HOLD', 'On Hold'),
+        ('PENDING', 'Pending'),
+        ('CANCELLED', 'Cancelled'),
+    ]
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('CASH', 'Cash'),
+        ('CHEQUE', 'Cheque'),
+        ('BANK_TRANSFER', 'Bank Transfer'),
+        ('UPI', 'UPI'),
+        ('CREDIT_CARD', 'Credit Card'),
+        ('DEBIT_CARD', 'Debit Card'),
+        ('NEFT', 'NEFT'),
+        ('RTGS', 'RTGS'),
+        ('OTHER', 'Other'),
+    ]
+    
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='payments')
+    payment_date = models.DateField()
+    amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0'))], help_text="Amount received")
+    
+    # Adjustments
+    tds_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0'))], help_text="TDS Deducted")
+    tds_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0'))], help_text="TDS %")
+    fine_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0'))], help_text="Fine/Penalty")
+    adjustment_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), help_text="Other Adjustments (+/-)")
+    
+    # Net amount received
+    net_amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Net amount after adjustments")
+    
+    # Payment details
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='BANK_TRANSFER')
+    reference_number = models.CharField(max_length=100, blank=True, null=True, help_text="Cheque/Transaction/Reference Number")
+    bank_name = models.CharField(max_length=200, blank=True, null=True)
+    remarks = models.TextField(blank=True, null=True)
+    
+    # Status
+    status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='RECEIVED')
+    is_on_hold = models.BooleanField(default=False, help_text="Payment on hold")
+    hold_reason = models.TextField(blank=True, null=True, help_text="Reason for hold")
+    
+    # Tracking
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_payments')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'payments'
+        ordering = ['-payment_date', '-created_at']
+        verbose_name = 'Payment'
+        verbose_name_plural = 'Payments'
+    
+    def save(self, *args, **kwargs):
+        # Calculate net amount: amount - TDS - fine + adjustment
+        self.net_amount = self.amount - self.tds_amount - self.fine_amount + self.adjustment_amount
+        
+        # Auto-set is_on_hold based on status
+        if self.status == 'ON_HOLD':
+            self.is_on_hold = True
+        elif self.status == 'RECEIVED':
+            self.is_on_hold = False
+        
+        super().save(*args, **kwargs)
+        
+        # Update invoice status after payment is saved
+        if self.invoice:
+            self.invoice.update_status_from_payments()
+    
+    def delete(self, *args, **kwargs):
+        invoice = self.invoice
+        super().delete(*args, **kwargs)
+        # Update invoice status after payment is deleted
+        if invoice:
+            invoice.update_status_from_payments()
+    
+    def __str__(self):
+        return f"Payment of ₹{self.net_amount:,.2f} for {self.invoice.invoice_number} on {self.payment_date}"
+    
+    def get_status_badge_class(self):
+        """Get CSS class for status badge"""
+        status_classes = {
+            'RECEIVED': 'paid',
+            'ON_HOLD': 'pending',
+            'PENDING': 'pending',
+            'CANCELLED': 'overdue',
+        }
+        return status_classes.get(self.status, 'pending')
 
 
 class CompanySettings(models.Model):

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Client, Product, PurchaseOrder, POLineItem, Invoice, InvoiceItem, Company, CompanySettings, UOM
+from .models import Client, Product, PurchaseOrder, POLineItem, Invoice, InvoiceItem, Company, CompanySettings, UOM, Payment
 
 
 @admin.register(UOM)
@@ -95,6 +95,30 @@ class CompanyAdmin(admin.ModelAdmin):
         return bool(obj.stamp)
     has_stamp.boolean = True
     has_stamp.short_description = 'Has Stamp'
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ['invoice', 'payment_date', 'amount', 'tds_amount', 'fine_amount', 'net_amount', 'payment_method', 'status', 'is_on_hold', 'created_at']
+    list_filter = ['status', 'is_on_hold', 'payment_method', 'payment_date']
+    search_fields = ['invoice__invoice_number', 'reference_number', 'remarks']
+    readonly_fields = ['net_amount', 'created_at', 'updated_at']
+    date_hierarchy = 'payment_date'
+    
+    fieldsets = (
+        ('Payment Information', {
+            'fields': ('invoice', 'payment_date', 'amount', 'payment_method', 'reference_number', 'bank_name')
+        }),
+        ('Adjustments', {
+            'fields': ('tds_amount', 'tds_percentage', 'fine_amount', 'adjustment_amount', 'net_amount')
+        }),
+        ('Status', {
+            'fields': ('status', 'is_on_hold', 'hold_reason')
+        }),
+        ('Additional Information', {
+            'fields': ('remarks', 'created_by', 'created_at', 'updated_at')
+        }),
+    )
 
 
 @admin.register(CompanySettings)

@@ -26,6 +26,11 @@ urlpatterns = [
     path('invoices/<int:pk>/edit/', views.edit_invoice, name='edit_invoice'),
     path('invoices/<int:pk>/delete/', views.delete_invoice, name='delete_invoice'),
     
+    # Payments
+    path('invoices/<int:invoice_id>/payment/add/', views.add_payment, name='add_payment'),
+    path('payments/<int:pk>/edit/', views.edit_payment, name='edit_payment'),
+    path('payments/<int:pk>/delete/', views.delete_payment, name='delete_payment'),
+    
     # Clients
     path('clients/', views.client_list, name='client_list'),
     path('clients/create/', views.create_client, name='create_client'),

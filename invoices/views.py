@@ -7,11 +7,11 @@ from django.http import JsonResponse
 from datetime import date, timedelta
 from decimal import Decimal
 from .models import (
-    Client, Product, PurchaseOrder, POLineItem, Invoice, InvoiceItem, Company, CompanySettings, UOM
+    Client, Product, PurchaseOrder, POLineItem, Invoice, InvoiceItem, Company, CompanySettings, UOM, Payment
 )
 from .forms import (
     PurchaseOrderForm, POLineItemFormSet, InvoiceForm, InvoiceItemFormSet,
-    get_invoice_item_formset, ClientForm, ProductForm, CompanyForm, CompanySettingsForm, UOMForm
+    get_invoice_item_formset, ClientForm, ProductForm, CompanyForm, CompanySettingsForm, UOMForm, PaymentForm
 )
 
 
@@ -332,10 +332,23 @@ def invoice_detail(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     items = invoice.items.all()
     company = invoice.company
+    payments = invoice.payments.all().order_by('-payment_date', '-created_at')
+    
+    # Calculate payment totals
+    total_paid = invoice.get_total_paid()
+    total_on_hold = invoice.get_total_on_hold()
+    outstanding = invoice.get_outstanding_amount()
+    payment_status = invoice.get_payment_status()
+    
     return render(request, 'invoices/invoice_detail.html', {
         'invoice': invoice,
         'items': items,
-        'company': company
+        'company': company,
+        'payments': payments,
+        'total_paid': total_paid,
+        'total_on_hold': total_on_hold,
+        'outstanding': outstanding,
+        'payment_status': payment_status,
     })
 
 
@@ -680,6 +693,78 @@ def api_company_next_invoice_number(request, company_id):
         return JsonResponse({'invoice_number': next_invoice_number})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+
+@login_required
+def add_payment(request, invoice_id):
+    """Add payment to invoice"""
+    invoice = get_object_or_404(Invoice, pk=invoice_id)
+    
+    if request.method == 'POST':
+        form = PaymentForm(request.POST, invoice=invoice)
+        if form.is_valid():
+            payment = form.save(commit=False)
+            payment.invoice = invoice
+            payment.created_by = request.user
+            payment.save()
+            messages.success(request, f'Payment of ₹{payment.net_amount:,.2f} recorded successfully!')
+            return redirect('invoices:invoice_detail', pk=invoice_id)
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        form = PaymentForm(invoice=invoice)
+    
+    return render(request, 'invoices/payment_form.html', {
+        'form': form,
+        'invoice': invoice,
+        'title': 'Add Payment'
+    })
+
+
+@login_required
+def edit_payment(request, pk):
+    """Edit payment"""
+    payment = get_object_or_404(Payment, pk=pk)
+    invoice = payment.invoice
+    
+    if request.method == 'POST':
+        form = PaymentForm(request.POST, instance=payment, invoice=invoice)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Payment updated successfully!')
+            return redirect('invoices:invoice_detail', pk=invoice.pk)
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        form = PaymentForm(instance=payment, invoice=invoice)
+    
+    return render(request, 'invoices/payment_form.html', {
+        'form': form,
+        'invoice': invoice,
+        'payment': payment,
+        'title': 'Edit Payment'
+    })
+
+
+@login_required
+def delete_payment(request, pk):
+    """Delete payment"""
+    payment = get_object_or_404(Payment, pk=pk)
+    invoice = payment.invoice
+    
+    if request.method == 'POST':
+        payment.delete()
+        messages.success(request, 'Payment deleted successfully!')
+        return redirect('invoices:invoice_detail', pk=invoice.pk)
+    
+    return render(request, 'invoices/payment_confirm_delete.html', {
+        'payment': payment,
+        'invoice': invoice
+    })
 
 
 @login_required

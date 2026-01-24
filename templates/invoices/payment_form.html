@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block authenticated_content %}
+<div class="card">
+    <div class="card-header">
+        <h2>{{ title }}</h2>
+        <div>
+            <a href="{% url 'invoices:invoice_detail' invoice.pk %}" class="btn-secondary" style="text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Back to Invoice
+            </a>
+        </div>
+    </div>
+    <div class="modal-body">
+        <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-hover); border-radius: 8px;">
+            <strong>Invoice:</strong> {{ invoice.invoice_number }} | 
+            <strong>Client:</strong> {{ invoice.client.name }} | 
+            <strong>Total:</strong> ₹{{ invoice.total|floatformat:2 }}
+        </div>
+        
+        <form method="post" id="paymentForm">
+            {% csrf_token %}
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.payment_date.label }} <span class="text-danger">*</span></label>
+                    {{ form.payment_date }}
+                    {% if form.payment_date.errors %}
+                        <div class="text-danger">{{ form.payment_date.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.amount.label }} <span class="text-danger">*</span></label>
+                    {{ form.amount }}
+                    {% if form.amount.errors %}
+                        <div class="text-danger">{{ form.amount.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div style="margin: 1.5rem 0; padding: 1rem; background: var(--bg-hover); border-radius: 8px; border-left: 4px solid var(--primary);">
+                <h3 style="margin: 0 0 1rem 0; font-size: 1rem;">Adjustments</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{{ form.tds_amount.label }}</label>
+                        {{ form.tds_amount }}
+                        {% if form.tds_amount.errors %}
+                            <div class="text-danger">{{ form.tds_amount.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>{{ form.tds_percentage.label }}</label>
+                        {{ form.tds_percentage }}
+                        {% if form.tds_percentage.errors %}
+                            <div class="text-danger">{{ form.tds_percentage.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Enter percentage to auto-calculate TDS</small>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{{ form.fine_amount.label }}</label>
+                        {{ form.fine_amount }}
+                        {% if form.fine_amount.errors %}
+                            <div class="text-danger">{{ form.fine_amount.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>{{ form.adjustment_amount.label }}</label>
+                        {{ form.adjustment_amount }}
+                        {% if form.adjustment_amount.errors %}
+                            <div class="text-danger">{{ form.adjustment_amount.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Other adjustments (+/-)</small>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; padding: 0.75rem; background: var(--bg-dark); border-radius: 6px;">
+                    <strong>Net Amount:</strong> <span id="netAmount" style="font-size: 1.2rem; font-weight: 700; color: var(--success);">₹0.00</span>
+                    <small class="text-muted" style="display: block; margin-top: 0.25rem;">(Amount - TDS - Fine + Adjustment)</small>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.payment_method.label }} <span class="text-danger">*</span></label>
+                    {{ form.payment_method }}
+                    {% if form.payment_method.errors %}
+                        <div class="text-danger">{{ form.payment_method.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.reference_number.label }}</label>
+                    {{ form.reference_number }}
+                    {% if form.reference_number.errors %}
+                        <div class="text-danger">{{ form.reference_number.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.bank_name.label }}</label>
+                    {{ form.bank_name }}
+                    {% if form.bank_name.errors %}
+                        <div class="text-danger">{{ form.bank_name.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.status.label }} <span class="text-danger">*</span></label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                        <div class="text-danger">{{ form.status.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-group" id="holdReasonGroup" style="display: none;">
+                <label>{{ form.hold_reason.label }}</label>
+                {{ form.hold_reason }}
+                {% if form.hold_reason.errors %}
+                    <div class="text-danger">{{ form.hold_reason.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label>{{ form.remarks.label }}</label>
+                {{ form.remarks }}
+                {% if form.remarks.errors %}
+                    <div class="text-danger">{{ form.remarks.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="modal-footer">
+                <a href="{% url 'invoices:invoice_detail' invoice.pk %}" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save"></i> Save Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const amountInput = document.getElementById('id_amount');
+    const tdsAmountInput = document.getElementById('id_tds_amount');
+    const tdsPercentageInput = document.getElementById('id_tds_percentage');
+    const fineAmountInput = document.getElementById('id_fine_amount');
+    const adjustmentAmountInput = document.getElementById('id_adjustment_amount');
+    const netAmountSpan = document.getElementById('netAmount');
+    const statusSelect = document.getElementById('id_status');
+    const holdReasonGroup = document.getElementById('holdReasonGroup');
+    const holdReasonInput = document.getElementById('id_hold_reason');
+    
+    function calculateNetAmount() {
+        const amount = parseFloat(amountInput.value) || 0;
+        const tds = parseFloat(tdsAmountInput.value) || 0;
+        const fine = parseFloat(fineAmountInput.value) || 0;
+        const adjustment = parseFloat(adjustmentAmountInput.value) || 0;
+        
+        const net = amount - tds - fine + adjustment;
+        netAmountSpan.textContent = '₹' + net.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        
+        if (net < 0) {
+            netAmountSpan.style.color = 'var(--danger)';
+        } else {
+            netAmountSpan.style.color = 'var(--success)';
+        }
+    }
+    
+    // Auto-calculate TDS from percentage
+    tdsPercentageInput.addEventListener('input', function() {
+        const percentage = parseFloat(this.value) || 0;
+        const amount = parseFloat(amountInput.value) || 0;
+        if (percentage > 0 && amount > 0) {
+            tdsAmountInput.value = ((amount * percentage) / 100).toFixed(2);
+            calculateNetAmount();
+        }
+    });
+    
+    // Calculate net amount on any change
+    [amountInput, tdsAmountInput, fineAmountInput, adjustmentAmountInput].forEach(input => {
+        input.addEventListener('input', calculateNetAmount);
+    });
+    
+    // Show/hide hold reason based on status
+    function toggleHoldReason() {
+        const isOnHoldInput = document.getElementById('id_is_on_hold');
+        if (statusSelect.value === 'ON_HOLD') {
+            holdReasonGroup.style.display = 'block';
+            if (isOnHoldInput) isOnHoldInput.checked = true;
+        } else {
+            holdReasonGroup.style.display = 'none';
+            if (statusSelect.value === 'RECEIVED' && isOnHoldInput) {
+                isOnHoldInput.checked = false;
+            }
+        }
+    }
+    
+    statusSelect.addEventListener('change', toggleHoldReason);
+    toggleHoldReason(); // Initial check
+    
+    // Initial calculation
+    calculateNetAmount();
+});
+</script>
+{% endblock %}
+

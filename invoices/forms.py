@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import inlineformset_factory
 from .models import (
-    PurchaseOrder, POLineItem, Invoice, InvoiceItem, Client, Product, Company, CompanySettings, UOM
+    PurchaseOrder, POLineItem, Invoice, InvoiceItem, Client, Product, Company, CompanySettings, UOM, Payment
 )
 from decimal import Decimal
 
@@ -286,6 +286,62 @@ class CompanySettingsForm(forms.ModelForm):
             'ifsc_code': forms.TextInput(attrs={'class': 'form-control'}),
             'branch': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+
+class PaymentForm(forms.ModelForm):
+    class Meta:
+        model = Payment
+        fields = [
+            'payment_date', 'amount', 'tds_amount', 'tds_percentage', 
+            'fine_amount', 'adjustment_amount', 'payment_method', 
+            'reference_number', 'bank_name', 'status', 'is_on_hold', 
+            'hold_reason', 'remarks'
+        ]
+        widgets = {
+            'payment_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date', 'required': True}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'required': True}),
+            'tds_amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'tds_percentage': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '100'}),
+            'fine_amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'adjustment_amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'payment_method': forms.Select(attrs={'class': 'form-control'}),
+            'reference_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Transaction/Cheque Number'}),
+            'bank_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank Name'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'is_on_hold': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'hold_reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Reason for hold'}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Additional remarks'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        invoice = kwargs.pop('invoice', None)
+        super().__init__(*args, **kwargs)
+        if invoice:
+            self.invoice = invoice
+            # Set default payment date to today
+            if not self.instance.pk:
+                from datetime import date
+                self.fields['payment_date'].initial = date.today()
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        amount = cleaned_data.get('amount', Decimal('0'))
+        tds_amount = cleaned_data.get('tds_amount', Decimal('0'))
+        fine_amount = cleaned_data.get('fine_amount', Decimal('0'))
+        adjustment_amount = cleaned_data.get('adjustment_amount', Decimal('0'))
+        
+        # Calculate net amount
+        net_amount = amount - tds_amount - fine_amount + adjustment_amount
+        
+        if net_amount < 0:
+            raise forms.ValidationError('Net amount cannot be negative after adjustments.')
+        
+        # Auto-calculate TDS if percentage is provided
+        tds_percentage = cleaned_data.get('tds_percentage', Decimal('0'))
+        if tds_percentage > 0 and tds_amount == 0:
+            cleaned_data['tds_amount'] = (amount * tds_percentage) / 100
+        
+        return cleaned_data
 
 
 class UOMForm(forms.ModelForm):
