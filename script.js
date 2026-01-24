@@ -41,7 +41,7 @@ new Chart(ctx, {
         plugins: { legend: { display: false } },
         scales: {
             x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
-            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', callback: v => '₹' + (v/1000) + 'k' } }
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', callback: v => '₹' + (v / 1000) + 'k' } }
         },
         interaction: { intersect: false, mode: 'index' }
     }
@@ -152,13 +152,13 @@ function calculateTotals() {
 
 // Init event listeners
 document.querySelectorAll('.qty, .rate').forEach(input => input.addEventListener('input', calculateTotals));
-document.querySelectorAll('.remove-item').forEach(btn => btn.addEventListener('click', function() { this.closest('.item-row').remove(); calculateTotals(); }));
+document.querySelectorAll('.remove-item').forEach(btn => btn.addEventListener('click', function () { this.closest('.item-row').remove(); calculateTotals(); }));
 document.getElementById('taxInput')?.addEventListener('input', calculateTotals);
 document.getElementById('discountInput')?.addEventListener('input', calculateTotals);
 
 // Chart filter buttons
 document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', function () {
         document.querySelector('.filter-btn.active')?.classList.remove('active');
         this.classList.add('active');
     });
@@ -166,14 +166,14 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 
 // Quick action buttons
 document.querySelectorAll('.quick-action-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', function () {
         if (this.querySelector('span').textContent === 'Create Invoice') modal.classList.add('active');
     });
 });
 
 // Nav View Switching
 document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', function(e) {
+    item.addEventListener('click', function (e) {
         e.preventDefault();
         const view = this.getAttribute('data-view');
         if (!view) return; // Ignore links with no data-view
@@ -181,24 +181,30 @@ document.querySelectorAll('.nav-item').forEach(item => {
         document.querySelector('.nav-item.active')?.classList.remove('active');
         this.classList.add('active');
 
-        // Hide all major sections
-        document.querySelector('.stats-grid').style.display = 'none';
-        document.querySelector('.content-grid').style.display = 'none';
-        document.getElementById('manage-po-section').style.display = 'none';
+        // Target all possible dashboard sections
+        const sections = [
+            document.querySelector('.stats-grid'),
+            document.querySelector('.content-grid'),
+            document.getElementById('manage-po-section')
+        ];
+
+        // Hide all sections first
+        sections.forEach(s => { if (s) s.style.setProperty('display', 'none', 'important'); });
 
         if (view === 'dashboard') {
-            document.querySelector('.stats-grid').style.display = 'grid';
-            document.querySelector('.content-grid').style.display = 'grid';
+            document.querySelector('.stats-grid')?.style.setProperty('display', window.innerWidth <= 768 ? 'grid' : 'grid', '');
+            document.querySelector('.content-grid')?.style.setProperty('display', window.innerWidth <= 768 ? 'flex' : 'grid', '');
             document.querySelector('.page-title').textContent = 'Dashboard';
             document.querySelector('.page-subtitle').textContent = "Welcome back! Here's your business overview.";
         } else if (view === 'manage-po') {
-            document.getElementById('manage-po-section').style.display = 'block';
+            const poSection = document.getElementById('manage-po-section');
+            if (poSection) poSection.style.setProperty('display', 'block', '');
             document.querySelector('.page-title').textContent = 'Manage Purchase Orders';
             document.querySelector('.page-subtitle').textContent = 'View and manage your project purchase orders.';
         }
 
         // Auto close sidebar on mobile
-        if (window.innerWidth <= 768) {
+        if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
             sidebar.classList.remove('active');
             overlay.classList.remove('active');
         }
@@ -208,7 +214,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
 // Table row hover effect & action buttons
 document.querySelectorAll('.invoice-table tbody tr').forEach(row => {
     row.querySelectorAll('.action-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
+        btn.addEventListener('click', function (e) {
             e.stopPropagation();
             const icon = this.querySelector('i').className;
             if (icon.includes('eye')) alert('Viewing invoice details...');

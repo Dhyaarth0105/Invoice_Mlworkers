@@ -1142,15 +1142,15 @@ body {
 
     /* Stats Grid Adjustment */
     .stats-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 1rem !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
     }
 
     .stat-card {
-        padding: 1.25rem 0.75rem !important;
-        flex-direction: column !important;
-        text-align: center !important;
-        gap: 0.5rem !important;
+        padding: 1.25rem 0.75rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
     }
 
     .stat-icon {
@@ -1166,7 +1166,7 @@ body {
     }
 
     .stat-label {
-        font-size: 0.75rem !important;
+        font-size: 0.7rem;
     }
 
     .stat-trend {
@@ -1184,18 +1184,18 @@ body {
     }
 
     .content-grid {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 1.5rem !important;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
     }
 
     .actions-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 0.75rem !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
     }
 
     .quick-action-btn {
-        padding: 1.25rem 0.75rem !important;
+        padding: 1.25rem 0.75rem;
     }
 
     /* Modal Mobile Optimization */
