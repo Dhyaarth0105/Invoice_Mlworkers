@@ -1,14 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>InvoicePro - Smart Invoice Management</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="logo">
@@ -110,44 +117,79 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td><span class="invoice-id">#INV-001</span></td>
-                                <td><div class="client-cell"><div class="client-avatar">TC</div> Tech Corp</div></td>
-                                <td class="amount">₹15,000</td>
-                                <td>Jan 22, 2026</td>
-                                <td><span class="status paid">Paid</span></td>
-                                <td class="actions"><button class="action-btn"><i class="fas fa-eye"></i></button><button class="action-btn"><i class="fas fa-download"></i></button><button class="action-btn"><i class="fas fa-ellipsis-v"></i></button></td>
+                                <td data-label="Invoice"><span class="invoice-id">#INV-001</span></td>
+                                <td data-label="Client">
+                                    <div class="client-cell">
+                                        <div class="client-avatar">TC</div> Tech Corp
+                                    </div>
+                                </td>
+                                <td data-label="Amount" class="amount">₹15,000</td>
+                                <td data-label="Date">Jan 22, 2026</td>
+                                <td data-label="Status"><span class="status paid">Paid</span></td>
+                                <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                            class="fas fa-eye"></i></button><button class="action-btn"><i
+                                            class="fas fa-download"></i></button><button class="action-btn"><i
+                                            class="fas fa-ellipsis-v"></i></button></td>
                             </tr>
                             <tr>
-                                <td><span class="invoice-id">#INV-002</span></td>
-                                <td><div class="client-cell"><div class="client-avatar">DS</div> Digital Solutions</div></td>
-                                <td class="amount">₹8,500</td>
-                                <td>Jan 20, 2026</td>
-                                <td><span class="status pending">Pending</span></td>
-                                <td class="actions"><button class="action-btn"><i class="fas fa-eye"></i></button><button class="action-btn"><i class="fas fa-download"></i></button><button class="action-btn"><i class="fas fa-ellipsis-v"></i></button></td>
+                                <td data-label="Invoice"><span class="invoice-id">#INV-002</span></td>
+                                <td data-label="Client">
+                                     <div class="client-cell">
+                                         <div class="client-avatar">DS</div> Digital Solutions
+                                     </div>
+                                 </td>
+                                 <td data-label="Amount" class="amount">₹8,500</td>
+                                 <td data-label="Date">Jan 20, 2026</td>
+                                 <td data-label="Status"><span class="status pending">Pending</span></td>
+                                 <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                             class="fas fa-eye"></i></button><button class="action-btn"><i
+                                             class="fas fa-download"></i></button><button class="action-btn"><i
+                                             class="fas fa-ellipsis-v"></i></button></td>
                             </tr>
                             <tr>
-                                <td><span class="invoice-id">#INV-003</span></td>
-                                <td><div class="client-cell"><div class="client-avatar">GS</div> Global Services</div></td>
-                                <td class="amount">₹22,000</td>
-                                <td>Jan 18, 2026</td>
-                                <td><span class="status paid">Paid</span></td>
-                                <td class="actions"><button class="action-btn"><i class="fas fa-eye"></i></button><button class="action-btn"><i class="fas fa-download"></i></button><button class="action-btn"><i class="fas fa-ellipsis-v"></i></button></td>
+                                <td data-label="Invoice"><span class="invoice-id">#INV-003</span></td>
+                                <td data-label="Client">
+                                     <div class="client-cell">
+                                         <div class="client-avatar">GS</div> Global Services
+                                     </div>
+                                 </td>
+                                 <td data-label="Amount" class="amount">₹22,000</td>
+                                 <td data-label="Date">Jan 18, 2026</td>
+                                 <td data-label="Status"><span class="status paid">Paid</span></td>
+                                 <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                             class="fas fa-eye"></i></button><button class="action-btn"><i
+                                             class="fas fa-download"></i></button><button class="action-btn"><i
+                                             class="fas fa-ellipsis-v"></i></button></td>
                             </tr>
                             <tr>
-                                <td><span class="invoice-id">#INV-004</span></td>
-                                <td><div class="client-cell"><div class="client-avatar">SI</div> Startup Inc</div></td>
-                                <td class="amount">₹5,200</td>
-                                <td>Jan 15, 2026</td>
-                                <td><span class="status overdue">Overdue</span></td>
-                                <td class="actions"><button class="action-btn"><i class="fas fa-eye"></i></button><button class="action-btn"><i class="fas fa-download"></i></button><button class="action-btn"><i class="fas fa-ellipsis-v"></i></button></td>
+                                <td data-label="Invoice"><span class="invoice-id">#INV-004</span></td>
+                                <td data-label="Client">
+                                     <div class="client-cell">
+                                         <div class="client-avatar">SI</div> Startup Inc
+                                     </div>
+                                 </td>
+                                 <td data-label="Amount" class="amount">₹5,200</td>
+                                 <td data-label="Date">Jan 15, 2026</td>
+                                 <td data-label="Status"><span class="status overdue">Overdue</span></td>
+                                 <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                             class="fas fa-eye"></i></button><button class="action-btn"><i
+                                             class="fas fa-download"></i></button><button class="action-btn"><i
+                                             class="fas fa-ellipsis-v"></i></button></td>
                             </tr>
                             <tr>
-                                <td><span class="invoice-id">#INV-005</span></td>
-                                <td><div class="client-cell"><div class="client-avatar">CM</div> Creative Media</div></td>
-                                <td class="amount">₹12,750</td>
-                                <td>Jan 12, 2026</td>
-                                <td><span class="status paid">Paid</span></td>
-                                <td class="actions"><button class="action-btn"><i class="fas fa-eye"></i></button><button class="action-btn"><i class="fas fa-download"></i></button><button class="action-btn"><i class="fas fa-ellipsis-v"></i></button></td>
+                                <td data-label="Invoice"><span class="invoice-id">#INV-005</span></td>
+                                <td data-label="Client">
+                                     <div class="client-cell">
+                                         <div class="client-avatar">CM</div> Creative Media
+                                     </div>
+                                 </td>
+                                 <td data-label="Amount" class="amount">₹12,750</td>
+                                 <td data-label="Date">Jan 12, 2026</td>
+                                 <td data-label="Status"><span class="status paid">Paid</span></td>
+                                 <td data-label="Actions" class="actions"><button class="action-btn"><i
+                                             class="fas fa-eye"></i></button><button class="action-btn"><i
+                                             class="fas fa-download"></i></button><button class="action-btn"><i
+                                             class="fas fa-ellipsis-v"></i></button></td>
                             </tr>
                         </tbody>
                     </table>
@@ -171,21 +213,40 @@
 
             <!-- Quick Actions & Top Clients -->
             <section class="card quick-actions">
-                <div class="card-header"><h2>Quick Actions</h2></div>
+                <div class="card-header">
+                    <h2>Quick Actions</h2>
+                </div>
                 <div class="actions-grid">
-                    <button class="quick-action-btn"><i class="fas fa-plus-circle"></i><span>Create Invoice</span></button>
+                    <button class="quick-action-btn"><i class="fas fa-plus-circle"></i><span>Create
+                            Invoice</span></button>
                     <button class="quick-action-btn"><i class="fas fa-user-plus"></i><span>Add Client</span></button>
-                    <button class="quick-action-btn"><i class="fas fa-paper-plane"></i><span>Send Reminder</span></button>
-                    <button class="quick-action-btn"><i class="fas fa-file-export"></i><span>Export Report</span></button>
+                    <button class="quick-action-btn"><i class="fas fa-paper-plane"></i><span>Send
+                            Reminder</span></button>
+                    <button class="quick-action-btn"><i class="fas fa-file-export"></i><span>Export
+                            Report</span></button>
                 </div>
             </section>
 
             <section class="card top-clients">
-                <div class="card-header"><h2>Top Clients</h2></div>
+                <div class="card-header">
+                    <h2>Top Clients</h2>
+                </div>
                 <div class="clients-list">
-                    <div class="client-item"><div class="client-avatar large">TC</div><div class="client-info"><span class="name">Tech Corp</span><span class="invoices">12 invoices</span></div><span class="client-revenue">₹1,45,000</span></div>
-                    <div class="client-item"><div class="client-avatar large">GS</div><div class="client-info"><span class="name">Global Services</span><span class="invoices">8 invoices</span></div><span class="client-revenue">₹98,500</span></div>
-                    <div class="client-item"><div class="client-avatar large">DS</div><div class="client-info"><span class="name">Digital Solutions</span><span class="invoices">6 invoices</span></div><span class="client-revenue">₹72,000</span></div>
+                    <div class="client-item">
+                        <div class="client-avatar large">TC</div>
+                        <div class="client-info"><span class="name">Tech Corp</span><span class="invoices">12
+                                invoices</span></div><span class="client-revenue">₹1,45,000</span>
+                    </div>
+                    <div class="client-item">
+                        <div class="client-avatar large">GS</div>
+                        <div class="client-info"><span class="name">Global Services</span><span class="invoices">8
+                                invoices</span></div><span class="client-revenue">₹98,500</span>
+                    </div>
+                    <div class="client-item">
+                        <div class="client-avatar large">DS</div>
+                        <div class="client-info"><span class="name">Digital Solutions</span><span class="invoices">6
+                                invoices</span></div><span class="client-revenue">₹72,000</span>
+                    </div>
                 </div>
             </section>
         </div>
@@ -200,18 +261,27 @@
             </div>
             <div class="modal-body">
                 <div class="form-row">
-                    <div class="form-group"><label>Client Name</label><select><option>Select Client</option><option>Tech Corp</option><option>Digital Solutions</option><option>Global Services</option></select></div>
+                    <div class="form-group"><label>Client Name</label><select>
+                            <option>Select Client</option>
+                            <option>Tech Corp</option>
+                            <option>Digital Solutions</option>
+                            <option>Global Services</option>
+                        </select></div>
                     <div class="form-group"><label>Invoice Date</label><input type="date" value="2026-01-23"></div>
                 </div>
                 <div class="form-group"><label>Invoice Items</label>
                     <div class="invoice-items">
-                        <div class="item-row"><input type="text" placeholder="Item description"><input type="number" placeholder="Qty" class="qty"><input type="number" placeholder="Rate" class="rate"><span class="item-total">₹0</span><button class="remove-item"><i class="fas fa-trash"></i></button></div>
+                        <div class="item-row"><input type="text" placeholder="Item description"><input type="number"
+                                placeholder="Qty" class="qty"><input type="number" placeholder="Rate" class="rate"><span
+                                class="item-total">₹0</span><button class="remove-item"><i
+                                    class="fas fa-trash"></i></button></div>
                     </div>
                     <button class="add-item-btn"><i class="fas fa-plus"></i> Add Item</button>
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label>Tax (%)</label><input type="number" value="18" id="taxInput"></div>
-                    <div class="form-group"><label>Discount (₹)</label><input type="number" value="0" id="discountInput"></div>
+                    <div class="form-group"><label>Discount (₹)</label><input type="number" value="0"
+                            id="discountInput"></div>
                 </div>
                 <div class="invoice-summary">
                     <div class="summary-row"><span>Subtotal</span><span id="subtotal">₹0</span></div>
@@ -230,4 +300,5 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
 </body>
+
 </html>
