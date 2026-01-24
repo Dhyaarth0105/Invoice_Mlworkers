@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block authenticated_content %}
+<div class="card">
+    <div class="card-header">
+        <h2>{{ title }}</h2>
+    </div>
+    <div class="modal-body">
+        <form method="post" id="poForm">
+            {% csrf_token %}
+            {{ formset.management_form }}
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.company.label }} <span class="text-danger">*</span></label>
+                    {{ form.company }}
+                    {% if form.company.errors %}
+                        <div class="text-danger">{{ form.company.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.po_number.label }} <span class="text-danger">*</span></label>
+                    {{ form.po_number }}
+                    {% if form.po_number.errors %}
+                        <div class="text-danger">{{ form.po_number.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.main_line_number.label }} <span class="text-danger">*</span></label>
+                    {{ form.main_line_number }}
+                    {% if form.main_line_number.errors %}
+                        <div class="text-danger">{{ form.main_line_number.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.main_line_description.label }} <span class="text-danger">*</span></label>
+                    {{ form.main_line_description }}
+                    {% if form.main_line_description.errors %}
+                        <div class="text-danger">{{ form.main_line_description.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-group" style="border: 2px solid var(--success); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0;">
+                <label style="font-weight: 600; margin-bottom: 1rem; display: block;">Subline Items <span class="text-danger">*</span></label>
+                <div class="invoice-items po-form" id="sublineItemsContainer">
+                    <div class="item-row-header">
+                        <div>Subline #</div>
+                        <div>Subline Description</div>
+                        <div>Quantity</div>
+                        <div>Price</div>
+                        <div>UOM</div>
+                        <div>Total</div>
+                        <div>Action</div>
+                    </div>
+                    {% for form in formset %}
+                    <div class="item-row" data-form-index="{{ forloop.counter0 }}">
+                        {{ form.id }}
+                        <div data-label="Subline #">{{ form.subline_number }}</div>
+                        <div data-label="Subline Description">{{ form.subline_description }}</div>
+                        <div data-label="Quantity">{{ form.quantity }}</div>
+                        <div data-label="Price">{{ form.price }}</div>
+                        <div data-label="UOM">{{ form.uom }}</div>
+                        <span class="item-total" data-label="Total">₹0</span>
+                        {% if form.DELETE %}
+                            <div style="display: none;">{{ form.DELETE }}</div>
+                        {% endif %}
+                        <button type="button" class="remove-item"><i class="fas fa-trash"></i></button>
+                        {% if form.errors %}
+                            <div style="grid-column: 1 / -1; color: var(--danger); font-size: 0.85rem; margin-top: 4px;">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="add-item-btn" id="addSublineBtn"><i class="fas fa-plus"></i> Add Subline Item</button>
+            </div>
+            
+            <div class="modal-footer">
+                <a href="{% url 'invoices:manage_po' %}" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save PO</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Hidden template for new form rows -->
+<div id="empty-form-template" style="display: none;">
+    {{ formset.empty_form }}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('sublineItemsContainer');
+    const addBtn = document.getElementById('addSublineBtn');
+    const totalFormsInput = document.getElementById('id_subline_items-TOTAL_FORMS');
+    const emptyFormTemplate = document.getElementById('empty-form-template');
+    let formCount = parseInt(totalFormsInput.value);
+    
+    // Get UOM options from existing select
+    const firstUomSelect = container.querySelector('select[name*="uom"]');
+    const uomOptions = firstUomSelect ? Array.from(firstUomSelect.options)
+        .filter(opt => opt.value)
+        .map(opt => ({ value: opt.value, text: opt.text })) : [];
+    
+    // Add subline item
+    addBtn?.addEventListener('click', function() {
+        const emptyFormHtml = emptyFormTemplate.innerHTML;
+        const newFormHtml = emptyFormHtml.replace(/__prefix__/g, formCount);
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = newFormHtml;
+        const formFields = tempDiv.querySelectorAll('input, select');
+        
+        const newRow = document.createElement('div');
+        newRow.className = 'item-row';
+        newRow.setAttribute('data-form-index', formCount);
+        
+        // Extract fields in order
+        const idField = tempDiv.querySelector('[name*="id"]');
+        const sublineNumber = tempDiv.querySelector('[name*="subline_number"]');
+        const sublineDesc = tempDiv.querySelector('[name*="subline_description"]');
+        const quantity = tempDiv.querySelector('[name*="quantity"]');
+        const price = tempDiv.querySelector('[name*="price"]');
+        const uom = tempDiv.querySelector('[name*="uom"]');
+        const deleteField = tempDiv.querySelector('[name*="DELETE"]');
+        
+        // Add classes for calculation
+        if (quantity) quantity.classList.add('qty');
+        if (price) price.classList.add('price');
+        
+        newRow.innerHTML = `
+            ${idField ? idField.outerHTML : ''}
+            <div>${sublineNumber ? sublineNumber.outerHTML : ''}</div>
+            <div>${sublineDesc ? sublineDesc.outerHTML : ''}</div>
+            <div>${quantity ? quantity.outerHTML : ''}</div>
+            <div>${price ? price.outerHTML : ''}</div>
+            <div>${uom ? uom.outerHTML : ''}</div>
+            <span class="item-total">₹0</span>
+            ${deleteField ? '<div style="display: none;">' + deleteField.outerHTML + '</div>' : ''}
+            <button type="button" class="remove-item"><i class="fas fa-trash"></i></button>
+        `;
+        
+        container.appendChild(newRow);
+        formCount++;
+        totalFormsInput.value = formCount;
+        
+        // Add event listeners
+        newRow.querySelectorAll('.qty, .price, input[type="number"]').forEach(input => {
+            if (input.name && (input.name.includes('quantity') || input.name.includes('price'))) {
+                input.addEventListener('input', calculateTotals);
+            }
+        });
+        
+        newRow.querySelector('.remove-item').addEventListener('click', function() {
+            const deleteInput = newRow.querySelector('input[name*="DELETE"]');
+            if (deleteInput) {
+                deleteInput.checked = true;
+                newRow.style.display = 'none';
+            } else {
+                newRow.remove();
+            }
+            calculateTotals();
+        });
+        
+        calculateTotals();
+    });
+    
+    // Remove item buttons
+    container.querySelectorAll('.remove-item').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('.item-row');
+            const deleteInput = row.querySelector('input[name*="DELETE"]');
+            if (deleteInput) {
+                deleteInput.checked = true;
+                row.style.display = 'none';
+            } else {
+                row.remove();
+            }
+            calculateTotals();
+        });
+    });
+    
+    // Calculate totals function
+    function calculateTotals() {
+        container.querySelectorAll('.item-row:not([style*="display: none"])').forEach(row => {
+            const qtyInput = row.querySelector('.qty, [name*="quantity"]');
+            const priceInput = row.querySelector('.price, [name*="price"]');
+            const qty = parseFloat(qtyInput?.value) || 0;
+            const price = parseFloat(priceInput?.value) || 0;
+            const total = qty * price;
+            const totalEl = row.querySelector('.item-total');
+            if (totalEl) {
+                totalEl.textContent = '₹' + total.toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+        });
+    }
+    
+    // Event listeners for existing inputs
+    container.querySelectorAll('.qty, .price, input[type="number"]').forEach(input => {
+        if (input.name && (input.name.includes('quantity') || input.name.includes('price'))) {
+            input.addEventListener('input', calculateTotals);
+        }
+    });
+    
+    // Initial calculation
+    calculateTotals();
+});
+</script>
+{% endblock %}

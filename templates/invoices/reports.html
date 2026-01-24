@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Reports & Analytics{% endblock %}
+{% block page_subtitle %}Business insights and financial reports.{% endblock %}
+
+{% block authenticated_content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-rupee-sign"></i></div>
+        <div class="stat-info">
+            <span class="stat-value">₹{{ total_revenue|floatformat:0 }}</span>
+            <span class="stat-label">Total Revenue (YTD)</span>
+        </div>
+        <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 24%</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-info">
+            <span class="stat-value">{{ paid_count }}</span>
+            <span class="stat-label">Paid Invoices</span>
+        </div>
+        <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 5%</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+        <div class="stat-info">
+            <span class="stat-value">{{ pending_count }}</span>
+            <span class="stat-label">Pending Invoices</span>
+        </div>
+        <div class="stat-trend down"><i class="fas fa-arrow-down"></i> 3%</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="stat-info">
+            <span class="stat-value">{{ overdue_count }}</span>
+            <span class="stat-label">Overdue Invoices</span>
+        </div>
+        <div class="stat-trend down"><i class="fas fa-arrow-down"></i> 2%</div>
+    </div>
+</div>
+
+<div class="content-grid">
+    <section class="card" style="grid-column: 1 / -1;">
+        <div class="card-header">
+            <h2>Monthly Revenue Trend</h2>
+            <button class="btn-primary"><i class="fas fa-download"></i> Export Report</button>
+        </div>
+        <div class="chart-container" style="height: 300px;">
+            <canvas id="reportChart"></canvas>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('reportChart')?.getContext('2d');
+    if (ctx) {
+        const monthlyData = [
+            {% for item in monthly_revenue %}
+            {month: '{{ item.month }}', revenue: {{ item.revenue }}}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: monthlyData.map(d => d.month),
+                datasets: [{
+                    label: 'Revenue',
+                    data: monthlyData.map(d => d.revenue),
+                    backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                    borderColor: '#6366f1',
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#64748b' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', callback: v => '₹' + (v / 1000) + 'k' } }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

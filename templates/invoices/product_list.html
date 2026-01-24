@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Products & Services{% endblock %}
+{% block page_subtitle %}Manage your product catalog and pricing.{% endblock %}
+
+{% block header_actions %}
+<button class="btn-primary" onclick="window.location.href='{% url 'invoices:create_product' %}'">
+    <i class="fas fa-plus"></i> Add Product
+</button>
+{% endblock %}
+
+{% block authenticated_content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Products & Services</h2>
+    </div>
+    <div class="table-container">
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>Product/Service</th>
+                    <th>SKU</th>
+                    <th>Category</th>
+                    <th>Unit Price</th>
+                    <th>Tax Rate</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td data-label="Product"><strong>{{ product.name }}</strong></td>
+                    <td data-label="SKU">{{ product.sku|default:"-" }}</td>
+                    <td data-label="Category">{{ product.category|default:"-" }}</td>
+                    <td data-label="Price" class="amount">₹{{ product.unit_price|floatformat:2 }}</td>
+                    <td data-label="Tax">{{ product.tax_rate }}%</td>
+                    <td data-label="Status">
+                        <span class="status {% if product.is_active %}paid{% else %}pending{% endif %}">
+                            {% if product.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </td>
+                    <td data-label="Actions" class="actions">
+                        <a href="{% url 'invoices:edit_product' product.pk %}" class="action-btn"><i class="fas fa-edit"></i></a>
+                        <a href="{% url 'invoices:delete_product' product.pk %}" class="action-btn" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">No products yet. <a href="{% url 'invoices:create_product' %}">Create one</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+

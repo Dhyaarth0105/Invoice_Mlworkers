@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Welcome back! Here's your business overview.{% endblock %}
+
+{% block header_actions %}
+<button class="btn-primary" onclick="window.location.href='{% url 'invoices:create_invoice' %}'">
+    <i class="fas fa-plus"></i> New Invoice
+</button>
+{% endblock %}
+
+{% block authenticated_content %}
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-file-invoice"></i></div>
+        <div class="stat-info">
+            <span class="stat-value">{{ total_invoices }}</span>
+            <span class="stat-label">Total Invoices</span>
+        </div>
+        <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 12%</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-info">
+            <span class="stat-value" data-prefix="₹">₹{{ paid_amount|floatformat:0 }}</span>
+            <span class="stat-label">Paid Amount</span>
+        </div>
+        <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 8%</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+        <div class="stat-info">
+            <span class="stat-value" data-prefix="₹">₹{{ pending_amount|floatformat:0 }}</span>
+            <span class="stat-label">Pending</span>
+        </div>
+        <div class="stat-trend down"><i class="fas fa-arrow-down"></i> 3%</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+        <div class="stat-info">
+            <span class="stat-value">{{ active_clients }}</span>
+            <span class="stat-label">Active Clients</span>
+        </div>
+        <div class="stat-trend up"><i class="fas fa-arrow-up"></i> 5%</div>
+    </div>
+</div>
+
+<!-- Main Grid -->
+<div class="content-grid">
+    <!-- Recent Invoices -->
+    <section class="card invoices-section">
+        <div class="card-header">
+            <h2>Recent Invoices</h2>
+            <a href="{% url 'invoices:invoice_list' %}" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="table-container">
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Client</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in recent_invoices %}
+                    <tr>
+                        <td data-label="Invoice"><span class="invoice-id">{{ invoice.invoice_number }}</span></td>
+                        <td data-label="Client">
+                            <div class="client-cell">
+                                <div class="client-avatar">{{ invoice.client.get_avatar_initials }}</div>
+                                {{ invoice.client.name }}
+                            </div>
+                        </td>
+                        <td data-label="Amount" class="amount">₹{{ invoice.total|floatformat:2 }}</td>
+                        <td data-label="Date">{{ invoice.invoice_date|date:"M d, Y" }}</td>
+                        <td data-label="Status"><span class="status {{ invoice.get_status_class }}">{{ invoice.get_status_display }}</span></td>
+                        <td data-label="Actions" class="actions">
+                            <a href="{% url 'invoices:invoice_detail' invoice.pk %}" class="action-btn"><i class="fas fa-eye"></i></a>
+                            <a href="{% url 'invoices:edit_invoice' invoice.pk %}" class="action-btn"><i class="fas fa-edit"></i></a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No invoices yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Top Clients -->
+    <section class="card top-clients">
+        <div class="card-header">
+            <h2>Top Clients</h2>
+        </div>
+        <div class="clients-list">
+            {% for client in top_clients %}
+            <div class="client-item">
+                <div class="client-avatar large">{{ client.get_avatar_initials }}</div>
+                <div class="client-info">
+                    <span class="name">{{ client.name }}</span>
+                    <span class="invoices">{{ client.invoice_count }} invoices</span>
+                </div>
+                <span class="client-revenue">₹{{ client.total_revenue|default:0|floatformat:0 }}</span>
+            </div>
+            {% empty %}
+            <p class="text-center">No clients yet</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}
+

@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - InvoicePro{% endblock %}
+
+{% block unauthenticated_content %}
+<div class="auth-wrapper">
+    <div class="auth-container">
+        <div class="auth-card animate-fade-in">
+            <!-- Logo & Header -->
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <h1 class="auth-title">Welcome Back</h1>
+                <p class="auth-subtitle">Sign in to your InvoicePro account</p>
+            </div>
+
+            <!-- Login Form -->
+            <form method="post" class="auth-form">
+                {% csrf_token %}
+                
+                <div class="form-floating">
+                    {{ form.username }}
+                    <label for="id_username"><i class="fas fa-user me-2"></i>Username or Email</label>
+                </div>
+
+                <div class="form-floating">
+                    {{ form.password }}
+                    <label for="id_password"><i class="fas fa-lock me-2"></i>Password</label>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'accounts:forgot_password' %}" class="forgot-link">Forgot Password?</a>
+                </div>
+
+                {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible fade show py-2" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>Invalid username or password.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-primary btn-auth">
+                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="auth-divider">
+                <span>OR</span>
+            </div>
+
+            <!-- Sign Up Link -->
+            <div class="auth-footer">
+                <p>Don't have an account?</p>
+                <a href="{% url 'accounts:signup' %}" class="btn btn-outline-primary btn-signup">
+                    <i class="fas fa-user-plus me-2"></i>Create Account
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .auth-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .auth-container {
+        width: 100%;
+        max-width: 440px;
+        position: relative;
+    }
+    
+    .auth-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+    
+    .auth-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+    
+    .auth-logo {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 36px;
+        color: white;
+        box-shadow: 0 10px 30px -10px rgba(102, 126, 234, 0.5);
+    }
+    
+    .auth-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 8px;
+    }
+    
+    .auth-subtitle {
+        color: #6b7280;
+        font-size: 15px;
+        margin: 0;
+    }
+    
+    .auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .form-floating {
+        position: relative;
+    }
+    
+    .form-floating .form-control {
+        height: 58px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 16px;
+        padding: 16px;
+        transition: all 0.3s;
+    }
+    
+    .form-floating .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-floating label {
+        color: #9ca3af;
+        padding: 16px;
+    }
+    
+    .forgot-link {
+        color: #667eea;
+        font-size: 14px;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .forgot-link:hover {
+        text-decoration: underline;
+    }
+    
+    .btn-auth {
+        height: 56px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        margin-top: 8px;
+        transition: all 0.3s;
+    }
+    
+    .btn-auth:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px -10px rgba(102, 126, 234, 0.5);
+    }
+    
+    .auth-divider {
+        position: relative;
+        text-align: center;
+        margin: 24px 0;
+    }
+    
+    .auth-divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #e5e7eb;
+    }
+    
+    .auth-divider span {
+        background: white;
+        padding: 0 16px;
+        color: #9ca3af;
+        font-size: 13px;
+        position: relative;
+    }
+    
+    .auth-footer {
+        text-align: center;
+    }
+    
+    .auth-footer p {
+        color: #6b7280;
+        margin: 0 0 12px;
+        font-size: 14px;
+    }
+    
+    .btn-signup {
+        width: 100%;
+        height: 50px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 600;
+        border: 2px solid #667eea;
+        color: #667eea;
+        transition: all 0.3s;
+    }
+    
+    .btn-signup:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: transparent;
+        color: white;
+    }
+    
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .auth-card {
+            padding: 24px;
+        }
+        
+        .auth-logo {
+            width: 64px;
+            height: 64px;
+            font-size: 28px;
+        }
+    }
+</style>
+{% endblock %}
+

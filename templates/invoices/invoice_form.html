@@ -1,0 +1,739 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block authenticated_content %}
+<div class="card">
+    <div class="card-header">
+        <h2>{{ title }}</h2>
+    </div>
+    <div class="modal-body">
+        <form method="post" id="invoiceForm" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ formset.management_form }}
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.company.label }} <span class="text-danger">*</span></label>
+                    {{ form.company }}
+                    {% if form.company.errors %}
+                        <div class="text-danger">{{ form.company.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.invoice_number.label }} <span class="text-danger">*</span></label>
+                    {{ form.invoice_number }}
+                    {% if form.invoice_number.errors %}
+                        <div class="text-danger">{{ form.invoice_number.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.client.label }} <span class="text-danger">*</span></label>
+                    {{ form.client }}
+                    {% if form.client.errors %}
+                        <div class="text-danger">{{ form.client.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.vendor_code.label }}</label>
+                    {{ form.vendor_code }}
+                    {% if form.vendor_code.errors %}
+                        <div class="text-danger">{{ form.vendor_code.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.po_reference.label }}</label>
+                    {{ form.po_reference }}
+                    {% if form.po_reference.errors %}
+                        <div class="text-danger">{{ form.po_reference.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.po_number.label }}</label>
+                    {{ form.po_number }}
+                    {% if form.po_number.errors %}
+                        <div class="text-danger">{{ form.po_number.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.po_date.label }}</label>
+                    {{ form.po_date }}
+                    {% if form.po_date.errors %}
+                        <div class="text-danger">{{ form.po_date.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.status.label }}</label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                        <div class="text-danger">{{ form.status.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.invoice_date.label }} <span class="text-danger">*</span></label>
+                    {{ form.invoice_date }}
+                    {% if form.invoice_date.errors %}
+                        <div class="text-danger">{{ form.invoice_date.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.due_date.label }} <span class="text-danger">*</span></label>
+                    {{ form.due_date }}
+                    {% if form.due_date.errors %}
+                        <div class="text-danger">{{ form.due_date.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-group" style="border: 2px solid var(--success); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0;">
+                <label style="font-weight: 600; margin-bottom: 1rem; display: block;">Invoice Items <span class="text-danger">*</span></label>
+                <div class="invoice-items">
+                    <div class="item-row-header">
+                        <div>PO Line Item</div>
+                        <div>Description</div>
+                        <div>SAC Code</div>
+                        <div>Quantity</div>
+                        <div>Rate</div>
+                        <div>Total</div>
+                        <div>Action</div>
+                    </div>
+                    {% for form in formset %}
+                    <div class="item-row" {% if form.DELETE and form.DELETE.value %}style="display: none;"{% endif %}>
+                        {{ form.id }}
+                        <div data-label="PO Line Item">{{ form.po_line_item }}</div>
+                        <div data-label="Description">{{ form.description }}</div>
+                        <div data-label="SAC Code">{{ form.sac_code }}</div>
+                        <div data-label="Quantity">{{ form.quantity }}</div>
+                        <div data-label="Rate">{{ form.rate }}</div>
+                        <span class="item-total" data-label="Total">₹0</span>
+                        {% if form.DELETE %}
+                            <div style="display: none;">{{ form.DELETE }}</div>
+                        {% endif %}
+                        <button type="button" class="remove-item"><i class="fas fa-trash"></i></button>
+                        {% if form.errors %}
+                            <div style="grid-column: 1 / -1; color: var(--danger); font-size: 0.85rem; margin-top: 4px;">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="add-item-btn" id="addItemBtn"><i class="fas fa-plus"></i> Add Item</button>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.cgst_rate.label }}</label>
+                    {{ form.cgst_rate }}
+                    {% if form.cgst_rate.errors %}
+                        <div class="text-danger">{{ form.cgst_rate.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.sgst_rate.label }}</label>
+                    {{ form.sgst_rate }}
+                    {% if form.sgst_rate.errors %}
+                        <div class="text-danger">{{ form.sgst_rate.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.tax_rate.label }}</label>
+                    {{ form.tax_rate }}
+                    <small class="text-muted">(Auto-calculated: CGST + SGST)</small>
+                    {% if form.tax_rate.errors %}
+                        <div class="text-danger">{{ form.tax_rate.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.discount.label }}</label>
+                    {{ form.discount }}
+                    {% if form.discount.errors %}
+                        <div class="text-danger">{{ form.discount.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.place_of_supply.label }}</label>
+                    {{ form.place_of_supply }}
+                    {% if form.place_of_supply.errors %}
+                        <div class="text-danger">{{ form.place_of_supply.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.state_code.label }}</label>
+                    {{ form.state_code }}
+                    {% if form.state_code.errors %}
+                        <div class="text-danger">{{ form.state_code.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>
+                        {{ form.reverse_charge }}
+                        {{ form.reverse_charge.label }}
+                    </label>
+                    {% if form.reverse_charge.errors %}
+                        <div class="text-danger">{{ form.reverse_charge.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>{{ form.notes.label }}</label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                    <div class="text-danger">{{ form.notes.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group" style="border: 2px solid var(--primary); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0;">
+                <label style="font-weight: 600; margin-bottom: 1rem; display: block;">Document Uploads</label>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{{ form.measurement_sheet.label }}</label>
+                        {{ form.measurement_sheet }}
+                        {% if form.measurement_sheet.errors %}
+                            <div class="text-danger">{{ form.measurement_sheet.errors }}</div>
+                        {% endif %}
+                        {% if invoice and invoice.measurement_sheet %}
+                            <div style="margin-top: 0.5rem;">
+                                <small class="text-muted">Current file: </small>
+                                <a href="{{ invoice.measurement_sheet.url }}" target="_blank" style="color: var(--primary);">
+                                    <i class="fas fa-file-pdf"></i> {{ invoice.measurement_sheet.name|slice:"-50:" }}
+                                </a>
+                            </div>
+                        {% endif %}
+                        <small class="text-muted">Upload Measurement Sheet PDF</small>
+                    </div>
+                    <div class="form-group">
+                        <label>{{ form.bill_summary.label }}</label>
+                        {{ form.bill_summary }}
+                        {% if form.bill_summary.errors %}
+                            <div class="text-danger">{{ form.bill_summary.errors }}</div>
+                        {% endif %}
+                        {% if invoice and invoice.bill_summary %}
+                            <div style="margin-top: 0.5rem;">
+                                <small class="text-muted">Current file: </small>
+                                <a href="{{ invoice.bill_summary.url }}" target="_blank" style="color: var(--primary);">
+                                    <i class="fas fa-file-pdf"></i> {{ invoice.bill_summary.name|slice:"-50:" }}
+                                </a>
+                            </div>
+                        {% endif %}
+                        <small class="text-muted">Upload Bill Summary PDF</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="invoice-summary">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">₹0</span>
+                </div>
+                <div class="summary-row">
+                    <span>CGST (<span id="cgstRateDisplay">9</span>%)</span>
+                    <span id="cgstAmount">₹0</span>
+                </div>
+                <div class="summary-row">
+                    <span>SGST (<span id="sgstRateDisplay">9</span>%)</span>
+                    <span id="sgstAmount">₹0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Total Tax</span>
+                    <span id="taxAmount">₹0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Discount</span>
+                    <span id="discountAmount">-₹0</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span id="totalAmount">₹0</span>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <a href="{% url 'invoices:invoice_list' %}" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save Invoice</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Hidden template for new form rows -->
+<div id="empty-form-template" style="display: none;">
+    {{ formset.empty_form }}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.querySelector('.invoice-items');
+    const addBtn = document.getElementById('addItemBtn');
+    const totalFormsInput = document.getElementById('id_items-TOTAL_FORMS');
+    const emptyFormTemplate = document.getElementById('empty-form-template');
+    let formCount = parseInt(totalFormsInput.value);
+    
+    // Add item button
+    addBtn?.addEventListener('click', function() {
+        const emptyFormHtml = emptyFormTemplate.innerHTML;
+        const newFormHtml = emptyFormHtml.replace(/__prefix__/g, formCount);
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = newFormHtml;
+        
+        const newRow = document.createElement('div');
+        newRow.className = 'item-row';
+        
+        // Extract fields
+        const idField = tempDiv.querySelector('[name*="id"]');
+        const poLineItem = tempDiv.querySelector('[name*="po_line_item"]');
+        const description = tempDiv.querySelector('[name*="description"]');
+        const sacCode = tempDiv.querySelector('[name*="sac_code"]');
+        const quantity = tempDiv.querySelector('[name*="quantity"]');
+        const rate = tempDiv.querySelector('[name*="rate"]');
+        const deleteField = tempDiv.querySelector('[name*="DELETE"]');
+        
+        // Add classes for calculation
+        if (quantity) quantity.classList.add('qty');
+        if (rate) rate.classList.add('rate');
+        
+        newRow.innerHTML = `
+            ${idField ? idField.outerHTML : ''}
+            <div>${poLineItem ? poLineItem.outerHTML : ''}</div>
+            <div>${description ? description.outerHTML : ''}</div>
+            <div>${sacCode ? sacCode.outerHTML : ''}</div>
+            <div>${quantity ? quantity.outerHTML : ''}</div>
+            <div>${rate ? rate.outerHTML : ''}</div>
+            <span class="item-total">₹0</span>
+            ${deleteField ? '<div style="display: none;">' + deleteField.outerHTML + '</div>' : ''}
+            <button type="button" class="remove-item"><i class="fas fa-trash"></i></button>
+        `;
+        
+        // Update PO line item options based on selected PO reference
+        updatePOLineItemOptions(newRow);
+        
+        // Add event listener for PO line item change
+        const poLineItemSelect = newRow.querySelector('[name*="po_line_item"]');
+        if (poLineItemSelect) {
+            poLineItemSelect.addEventListener('change', function() {
+                const poLineItemId = this.value;
+                if (poLineItemId) {
+                    // Fetch PO line item details and auto-fill
+                    fetch(`/api/po-line-item/${poLineItemId}/`, {
+                        method: 'GET',
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        }
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data) {
+                                const descInput = newRow.querySelector('[name*="description"]');
+                                const qtyInput = newRow.querySelector('[name*="quantity"]');
+                                const rateInput = newRow.querySelector('[name*="rate"]');
+                                if (descInput) descInput.value = data.description || '';
+                                if (qtyInput) {
+                                    qtyInput.value = data.available_quantity || '';
+                                    qtyInput.setAttribute('max', data.available_quantity || '');
+                                }
+                                if (rateInput) rateInput.value = data.price || '';
+                                calculateTotals();
+                            }
+                        })
+                        .catch(error => console.error('Error fetching PO line item:', error));
+                }
+            });
+        }
+        
+        container.appendChild(newRow);
+        formCount++;
+        totalFormsInput.value = formCount;
+        
+        // Add event listeners
+        newRow.querySelectorAll('.qty, .rate, input[type="number"]').forEach(input => {
+            if (input.name && (input.name.includes('quantity') || input.name.includes('rate'))) {
+                input.addEventListener('input', calculateTotals);
+            }
+        });
+        
+        newRow.querySelector('.remove-item').addEventListener('click', function() {
+            const deleteInput = newRow.querySelector('input[name*="DELETE"]');
+            if (deleteInput) {
+                deleteInput.checked = true;
+                newRow.style.display = 'none';
+            } else {
+                newRow.remove();
+            }
+            calculateTotals();
+        });
+        
+        calculateTotals();
+    });
+    
+    // Remove item buttons
+    container.querySelectorAll('.remove-item').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('.item-row');
+            const deleteInput = row.querySelector('input[name*="DELETE"]');
+            if (deleteInput) {
+                deleteInput.checked = true;
+                row.style.display = 'none';
+            } else {
+                row.remove();
+            }
+            calculateTotals();
+        });
+    });
+    
+    // Calculate totals function
+    function calculateTotals() {
+        let subtotal = 0;
+        container.querySelectorAll('.item-row:not([style*="display: none"])').forEach(row => {
+            const qtyInput = row.querySelector('.qty, [name*="quantity"]');
+            const rateInput = row.querySelector('.rate, [name*="rate"]');
+            const qty = parseFloat(qtyInput?.value) || 0;
+            const rate = parseFloat(rateInput?.value) || 0;
+            const total = qty * rate;
+            const totalEl = row.querySelector('.item-total');
+            if (totalEl) {
+                totalEl.textContent = '₹' + total.toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+            subtotal += total;
+        });
+        
+        const cgstRate = parseFloat(document.getElementById('id_cgst_rate')?.value) || 0;
+        const sgstRate = parseFloat(document.getElementById('id_sgst_rate')?.value) || 0;
+        const discount = parseFloat(document.getElementById('id_discount')?.value) || 0;
+        
+        // Update tax_rate (readonly, auto-calculated)
+        const taxRateInput = document.getElementById('id_tax_rate');
+        if (taxRateInput) {
+            taxRateInput.value = (cgstRate + sgstRate).toFixed(2);
+        }
+        
+        const taxableAmount = subtotal - discount;
+        const cgstAmt = (taxableAmount * cgstRate) / 100;
+        const sgstAmt = (taxableAmount * sgstRate) / 100;
+        const taxAmt = cgstAmt + sgstAmt;
+        const total = taxableAmount + taxAmt;
+        
+        document.getElementById('subtotal').textContent = '₹' + subtotal.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        document.getElementById('cgstAmount').textContent = '₹' + cgstAmt.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        document.getElementById('sgstAmount').textContent = '₹' + sgstAmt.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        document.getElementById('taxAmount').textContent = '₹' + taxAmt.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        document.getElementById('discountAmount').textContent = '-₹' + discount.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        document.getElementById('totalAmount').textContent = '₹' + total.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        document.getElementById('cgstRateDisplay').textContent = cgstRate;
+        document.getElementById('sgstRateDisplay').textContent = sgstRate;
+    }
+    
+    // Event listeners
+    container.querySelectorAll('.qty, .rate, input[type="number"]').forEach(input => {
+        if (input.name && (input.name.includes('quantity') || input.name.includes('rate'))) {
+            input.addEventListener('input', calculateTotals);
+        }
+    });
+    document.getElementById('id_cgst_rate')?.addEventListener('input', calculateTotals);
+    document.getElementById('id_sgst_rate')?.addEventListener('input', calculateTotals);
+    document.getElementById('id_discount')?.addEventListener('input', calculateTotals);
+    
+    // Auto-update tax_rate when CGST/SGST changes
+    document.getElementById('id_cgst_rate')?.addEventListener('input', function() {
+        const cgst = parseFloat(this.value) || 0;
+        const sgst = parseFloat(document.getElementById('id_sgst_rate')?.value) || 0;
+        const taxRateInput = document.getElementById('id_tax_rate');
+        if (taxRateInput) {
+            taxRateInput.value = (cgst + sgst).toFixed(2);
+        }
+        calculateTotals();
+    });
+    document.getElementById('id_sgst_rate')?.addEventListener('input', function() {
+        const cgst = parseFloat(document.getElementById('id_cgst_rate')?.value) || 0;
+        const sgst = parseFloat(this.value) || 0;
+        const taxRateInput = document.getElementById('id_tax_rate');
+        if (taxRateInput) {
+            taxRateInput.value = (cgst + sgst).toFixed(2);
+        }
+        calculateTotals();
+    });
+    
+    // Update invoice number and PO dropdown when company changes
+    const companySelect = document.getElementById('id_company');
+    const poReferenceSelect = document.getElementById('id_po_reference');
+    const invoiceNumberInput = document.getElementById('id_invoice_number');
+    
+    if (companySelect && poReferenceSelect) {
+        companySelect.addEventListener('change', function() {
+            const companyId = this.value;
+            
+            // Auto-generate invoice number when company changes (only for new invoices)
+            if (companyId && companyId !== '' && invoiceNumberInput) {
+                // Only auto-fill if field is empty or readonly (new invoice)
+                if (!invoiceNumberInput.value || invoiceNumberInput.hasAttribute('readonly')) {
+                    fetch(`/api/company/${companyId}/next-invoice-number/`, {
+                        method: 'GET',
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.invoice_number) {
+                            invoiceNumberInput.value = data.invoice_number;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching next invoice number:', error);
+                    });
+                }
+            }
+            
+            if (companyId && companyId !== '') {
+                // Fetch POs for selected company
+                poReferenceSelect.innerHTML = '<option value="">Loading...</option>';
+                poReferenceSelect.disabled = true;
+                
+                fetch(`/api/company/${companyId}/pos/`, {
+                    credentials: 'same-origin'
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        poReferenceSelect.innerHTML = '<option value="">Select PO Reference</option>';
+                        poReferenceSelect.disabled = false;
+                        
+                        if (data && data.pos && data.pos.length > 0) {
+                            data.pos.forEach(po => {
+                                const option = document.createElement('option');
+                                option.value = po.id;
+                                option.textContent = po.display;
+                                poReferenceSelect.appendChild(option);
+                            });
+                        } else {
+                            poReferenceSelect.innerHTML = '<option value="">No POs available for this company</option>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching company POs:', error);
+                        poReferenceSelect.innerHTML = '<option value="">Error loading POs</option>';
+                        poReferenceSelect.disabled = false;
+                    });
+            } else {
+                poReferenceSelect.innerHTML = '<option value="">Select Company first</option>';
+                poReferenceSelect.disabled = false;
+            }
+            // Clear PO line items when company changes
+            updateAllPOLineItemOptions();
+        });
+    }
+    
+    // Update PO line item options when PO reference changes
+    if (poReferenceSelect) {
+        poReferenceSelect.addEventListener('change', function() {
+            updateAllPOLineItemOptions();
+        });
+    }
+    
+    // Function to update PO line item options for all rows
+    function updateAllPOLineItemOptions() {
+        const rows = container.querySelectorAll('.item-row');
+        console.log('Updating PO line items for', rows.length, 'rows');
+        rows.forEach(row => {
+            updatePOLineItemOptions(row);
+        });
+    }
+    
+    // Function to update PO line item options for a specific row
+    function updatePOLineItemOptions(row) {
+        const poReferenceSelect = document.getElementById('id_po_reference');
+        const poLineItemSelect = row.querySelector('[name*="po_line_item"]');
+        
+        if (!poReferenceSelect || !poLineItemSelect) return;
+        
+        const poId = poReferenceSelect.value;
+        if (poId && poId !== '') {
+            // Preserve current selection if any
+            const currentValue = poLineItemSelect.value;
+            const currentHTML = poLineItemSelect.innerHTML;
+            
+            // Show loading state only if dropdown is empty or has "----------"
+            if (!currentHTML || currentHTML.includes('----------') || 
+                currentHTML.includes('Select PO Reference') ||
+                poLineItemSelect.options.length <= 1) {
+                poLineItemSelect.innerHTML = '<option value="">Loading...</option>';
+                poLineItemSelect.disabled = true;
+            }
+            
+            fetch(`/api/po/${poId}/line-items/`, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            console.error('API Error Response:', text);
+                            throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    poLineItemSelect.innerHTML = '<option value="">Select PO Line Item</option>';
+                    poLineItemSelect.disabled = false;
+                    
+                    if (data && data.items && data.items.length > 0) {
+                        data.items.forEach(item => {
+                            const option = document.createElement('option');
+                            option.value = item.id;
+                            option.textContent = `${item.subline_number} - ${item.description} (Available: ${item.available_quantity})`;
+                            option.dataset.description = item.description;
+                            option.dataset.quantity = item.available_quantity;
+                            option.dataset.price = item.price;
+                            poLineItemSelect.appendChild(option);
+                        });
+                        
+                        // Restore previous selection if it exists
+                        if (currentValue && currentValue !== '') {
+                            poLineItemSelect.value = currentValue;
+                        }
+                    } else {
+                        poLineItemSelect.innerHTML = '<option value="">No line items available</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching PO line items:', error);
+                    poLineItemSelect.innerHTML = '<option value="">Error loading items</option>';
+                    poLineItemSelect.disabled = false;
+                });
+        } else {
+            poLineItemSelect.innerHTML = '<option value="">Select PO Reference first</option>';
+            poLineItemSelect.disabled = false;
+        }
+    }
+    
+    // Add event listeners for existing PO line item selects
+    container.querySelectorAll('[name*="po_line_item"]').forEach(select => {
+        select.addEventListener('change', function() {
+            const option = this.options[this.selectedIndex];
+            if (option && option.value) {
+                const row = this.closest('.item-row');
+                const descInput = row.querySelector('[name*="description"]');
+                const qtyInput = row.querySelector('[name*="quantity"]');
+                const rateInput = row.querySelector('[name*="rate"]');
+                
+                if (descInput && option.dataset.description) {
+                    descInput.value = option.dataset.description;
+                }
+                if (qtyInput && option.dataset.quantity) {
+                    qtyInput.value = option.dataset.quantity;
+                    qtyInput.setAttribute('max', option.dataset.quantity);
+                }
+                if (rateInput && option.dataset.price) {
+                    rateInput.value = option.dataset.price;
+                }
+                calculateTotals();
+            }
+        });
+    });
+    
+    // Initial calculation
+    calculateTotals();
+    
+    // Update PO line item options on page load if PO reference is already selected
+    function initializePOLineItems() {
+        const poReferenceSelect = document.getElementById('id_po_reference');
+        const poLineItemSelects = container.querySelectorAll('[name*="po_line_item"]');
+        
+        console.log('Initializing PO line items. PO Reference:', poReferenceSelect?.value, 'Selects found:', poLineItemSelects.length);
+        
+        if (poReferenceSelect && poReferenceSelect.value && poReferenceSelect.value !== '') {
+            // Preserve any existing selected values before updating
+            poLineItemSelects.forEach(select => {
+                if (select.value && select.value !== '') {
+                    select.setAttribute('data-current-value', select.value);
+                }
+            });
+            // Update immediately
+            updateAllPOLineItemOptions();
+        } else {
+            // Even if no PO is selected, replace "----------" with proper message
+            poLineItemSelects.forEach(select => {
+                const currentHTML = select.innerHTML;
+                // Check if it has the default "----------" option
+                if (currentHTML && currentHTML.includes('----------')) {
+                    console.log('Replacing "----------" in dropdown');
+                    select.innerHTML = '<option value="">Select PO Reference first</option>';
+                }
+            });
+        }
+    }
+    
+    // Run immediately
+    initializePOLineItems();
+    
+    // Also run after short delays to ensure everything is ready
+    setTimeout(initializePOLineItems, 100);
+    setTimeout(initializePOLineItems, 500);
+});
+</script>
+{% endblock %}

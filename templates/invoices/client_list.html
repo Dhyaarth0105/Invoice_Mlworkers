@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Clients{% endblock %}
+{% block page_subtitle %}Manage your client database and contact information.{% endblock %}
+
+{% block header_actions %}
+<button class="btn-primary" onclick="window.location.href='{% url 'invoices:create_client' %}'">
+    <i class="fas fa-plus"></i> Add Client
+</button>
+{% endblock %}
+
+{% block authenticated_content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Client Management</h2>
+    </div>
+    <div class="table-container">
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Total Invoices</th>
+                    <th>Total Revenue</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for client in clients %}
+                <tr>
+                    <td data-label="Client">
+                        <div class="client-cell">
+                            <div class="client-avatar">{{ client.get_avatar_initials }}</div>
+                            {{ client.name }}
+                        </div>
+                    </td>
+                    <td data-label="Email">{{ client.email }}</td>
+                    <td data-label="Phone">{{ client.phone|default:"-" }}</td>
+                    <td data-label="Invoices">{{ client.invoice_count|default:0 }}</td>
+                    <td data-label="Revenue" class="amount">₹{{ client.total_revenue|default:0|floatformat:0 }}</td>
+                    <td data-label="Status">
+                        <span class="status {% if client.is_active %}paid{% else %}pending{% endif %}">
+                            {% if client.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </td>
+                    <td data-label="Actions" class="actions">
+                        <a href="{% url 'invoices:edit_client' client.pk %}" class="action-btn"><i class="fas fa-edit"></i></a>
+                        <a href="{% url 'invoices:delete_client' client.pk %}" class="action-btn" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">No clients yet. <a href="{% url 'invoices:create_client' %}">Create one</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+

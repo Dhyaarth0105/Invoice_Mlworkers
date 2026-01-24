@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Invoice {{ invoice.invoice_number }}{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'invoices:edit_invoice' invoice.pk %}" class="btn-primary">
+    <i class="fas fa-edit"></i> Edit Invoice
+</a>
+<a href="{% url 'invoices:invoice_pdf' invoice.pk %}" class="btn-primary" style="background: var(--danger);">
+    <i class="fas fa-download"></i> Download PDF
+</a>
+{% endblock %}
+
+{% block authenticated_content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Invoice {{ invoice.invoice_number }}</h2>
+        <div>
+            <span class="status {{ invoice.get_status_class }}">{{ invoice.get_status_display }}</span>
+        </div>
+    </div>
+    <div class="modal-body">
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>Company:</strong></label>
+                <p>{{ invoice.company.name|default:"-" }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>Client:</strong></label>
+                <p>{{ invoice.client.name }}</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>PO Reference:</strong></label>
+                <p>{{ invoice.po_reference.po_number|default:"-" }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>PO Number:</strong></label>
+                <p>{{ invoice.po_number|default:"-" }}</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>PO Date:</strong></label>
+                <p>{{ invoice.po_date|date:"M d, Y"|default:"-" }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>Vendor Code:</strong></label>
+                <p>{{ invoice.vendor_code|default:"-" }}</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>Invoice Date:</strong></label>
+                <p>{{ invoice.invoice_date|date:"M d, Y" }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>Due Date:</strong></label>
+                <p>{{ invoice.due_date|date:"M d, Y" }}</p>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label><strong>Invoice Items:</strong></label>
+            <div class="table-container">
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>SAC Code</th>
+                            <th>Quantity</th>
+                            <th>Rate</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.description }}</td>
+                            <td>{{ item.sac_code|default:"-" }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td class="amount">₹{{ item.rate|floatformat:2 }}</td>
+                            <td class="amount">₹{{ item.total|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No items</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="invoice-summary">
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span>₹{{ invoice.subtotal|floatformat:2 }}</span>
+            </div>
+            <div class="summary-row">
+                <span>CGST ({{ invoice.cgst_rate }}%)</span>
+                <span>₹{{ invoice.cgst_amount|floatformat:2 }}</span>
+            </div>
+            <div class="summary-row">
+                <span>SGST ({{ invoice.sgst_rate }}%)</span>
+                <span>₹{{ invoice.sgst_amount|floatformat:2 }}</span>
+            </div>
+            <div class="summary-row">
+                <span>Total Tax</span>
+                <span>₹{{ invoice.tax_amount|floatformat:2 }}</span>
+            </div>
+            <div class="summary-row">
+                <span>Discount</span>
+                <span>-₹{{ invoice.discount|floatformat:2 }}</span>
+            </div>
+            <div class="summary-row total">
+                <span>Total</span>
+                <span>₹{{ invoice.total|floatformat:2 }}</span>
+            </div>
+            {% if invoice.reverse_charge %}
+            <div class="summary-row">
+                <span>Reverse Charge</span>
+                <span>YES - ₹{{ invoice.reverse_charge_amount|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if invoice.place_of_supply or invoice.state_code %}
+        <div class="form-row" style="margin-top: 1rem;">
+            <div class="form-group">
+                <label><strong>Place of Supply:</strong></label>
+                <p>{{ invoice.place_of_supply|default:"-" }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>State Code:</strong></label>
+                <p>{{ invoice.state_code|default:"-" }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="form-group" style="margin-top: 1rem; padding: 1rem; background: var(--bg-hover); border-radius: 8px;">
+            <label><strong>Amount in Words:</strong></label>
+            <p style="font-weight: 600; font-size: 1.1rem;">{{ invoice.get_amount_in_words }}</p>
+        </div>
+        
+        {% if invoice.notes %}
+        <div class="form-group">
+            <label><strong>Notes:</strong></label>
+            <p>{{ invoice.notes }}</p>
+        </div>
+        {% endif %}
+        
+        {% if invoice.measurement_sheet or invoice.bill_summary %}
+        <div class="form-group" style="margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-hover); border-radius: 12px; border: 2px solid var(--primary);">
+            <label style="font-weight: 600; margin-bottom: 1rem; display: block;"><i class="fas fa-file-pdf"></i> Attached Documents</label>
+            <div class="form-row">
+                {% if invoice.measurement_sheet %}
+                <div class="form-group">
+                    <label><strong>Measurement Sheet:</strong></label>
+                    <div style="margin-top: 0.5rem;">
+                        <a href="{{ invoice.measurement_sheet.url }}" target="_blank" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                            <i class="fas fa-file-pdf"></i> Download Measurement Sheet
+                        </a>
+                        <small class="text-muted" style="display: block; margin-top: 0.25rem;">{{ invoice.measurement_sheet.name|slice:"-50:" }}</small>
+                    </div>
+                </div>
+                {% else %}
+                <div class="form-group">
+                    <label><strong>Measurement Sheet:</strong></label>
+                    <p class="text-muted">No file uploaded</p>
+                </div>
+                {% endif %}
+                
+                {% if invoice.bill_summary %}
+                <div class="form-group">
+                    <label><strong>Bill Summary:</strong></label>
+                    <div style="margin-top: 0.5rem;">
+                        <a href="{{ invoice.bill_summary.url }}" target="_blank" class="btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                            <i class="fas fa-file-pdf"></i> Download Bill Summary
+                        </a>
+                        <small class="text-muted" style="display: block; margin-top: 0.25rem;">{{ invoice.bill_summary.name|slice:"-50:" }}</small>
+                    </div>
+                </div>
+                {% else %}
+                <div class="form-group">
+                    <label><strong>Bill Summary:</strong></label>
+                    <p class="text-muted">No file uploaded</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="modal-footer">
+            <a href="{% url 'invoices:invoice_list' %}" class="btn-secondary">Back to List</a>
+            <a href="{% url 'invoices:invoice_pdf' invoice.pk %}" class="btn-primary" style="background: var(--success);"><i class="fas fa-download"></i> Download PDF</a>
+            <a href="{% url 'invoices:edit_invoice' invoice.pk %}" class="btn-primary"><i class="fas fa-edit"></i> Edit</a>
+            <a href="{% url 'invoices:delete_invoice' invoice.pk %}" class="btn-primary" style="background: var(--danger);" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i> Delete</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

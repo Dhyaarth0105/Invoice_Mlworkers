@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Invoices{% endblock %}
+{% block page_subtitle %}View, create and manage all your invoices.{% endblock %}
+
+{% block header_actions %}
+<button class="btn-primary" onclick="window.location.href='{% url 'invoices:create_invoice' %}'">
+    <i class="fas fa-plus"></i> Create Invoice
+</button>
+{% endblock %}
+
+{% block authenticated_content %}
+<!-- Summary Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <div class="card" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border: none;">
+        <div style="padding: 1.5rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span style="color: rgba(255,255,255,0.8); font-size: 0.9rem; font-weight: 500;">Total Amount</span>
+                <i class="fas fa-rupee-sign" style="color: rgba(255,255,255,0.6); font-size: 1.2rem;"></i>
+            </div>
+            <h3 style="color: white; font-size: 2rem; font-weight: 700; margin: 0;">₹{{ total_amount|floatformat:2 }}</h3>
+            <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-top: 0.5rem; margin-bottom: 0;">{{ total_count }} invoice{{ total_count|pluralize }}</p>
+        </div>
+    </div>
+    
+    <div class="card" style="background: var(--bg-card); border: 1px solid var(--border);">
+        <div style="padding: 1.5rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;">Paid</span>
+                <i class="fas fa-check-circle" style="color: var(--success); font-size: 1.2rem;"></i>
+            </div>
+            <h3 style="color: var(--text-primary); font-size: 1.5rem; font-weight: 700; margin: 0;">₹{{ paid_amount|floatformat:2 }}</h3>
+        </div>
+    </div>
+    
+    <div class="card" style="background: var(--bg-card); border: 1px solid var(--border);">
+        <div style="padding: 1.5rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;">Pending</span>
+                <i class="fas fa-clock" style="color: var(--warning); font-size: 1.2rem;"></i>
+            </div>
+            <h3 style="color: var(--text-primary); font-size: 1.5rem; font-weight: 700; margin: 0;">₹{{ pending_amount|floatformat:2 }}</h3>
+        </div>
+    </div>
+    
+    <div class="card" style="background: var(--bg-card); border: 1px solid var(--border);">
+        <div style="padding: 1.5rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;">Overdue</span>
+                <i class="fas fa-exclamation-triangle" style="color: var(--danger); font-size: 1.2rem;"></i>
+            </div>
+            <h3 style="color: var(--text-primary); font-size: 1.5rem; font-weight: 700; margin: 0;">₹{{ overdue_amount|floatformat:2 }}</h3>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>All Invoices</h2>
+    </div>
+    <div class="table-container">
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Client</th>
+                    <th>PO Reference</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Documents</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                <tr>
+                    <td data-label="Invoice"><span class="invoice-id">{{ invoice.invoice_number }}</span></td>
+                    <td data-label="Client">
+                        <div class="client-cell">
+                            <div class="client-avatar">{{ invoice.client.get_avatar_initials }}</div>
+                            {{ invoice.client.name }}
+                        </div>
+                    </td>
+                    <td data-label="PO">{{ invoice.po_reference.po_number|default:"-" }}</td>
+                    <td data-label="Amount" class="amount">₹{{ invoice.total|floatformat:2 }}</td>
+                    <td data-label="Date">{{ invoice.invoice_date|date:"M d, Y" }}</td>
+                    <td data-label="Due">{{ invoice.due_date|date:"M d, Y" }}</td>
+                    <td data-label="Status"><span class="status {{ invoice.get_status_class }}">{{ invoice.get_status_display }}</span></td>
+                    <td data-label="Documents" style="text-align: center;">
+                        <div style="display: flex; gap: 0.75rem; justify-content: center; align-items: center; flex-wrap: wrap;">
+                            <!-- Measurement Sheet -->
+                            {% if invoice.measurement_sheet %}
+                                <a href="{{ invoice.measurement_sheet.url }}" target="_blank" title="Download Measurement Sheet" style="color: var(--success); font-size: 1.3rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+                                    <i class="fas fa-ruler-combined"></i>
+                                </a>
+                            {% else %}
+                                <span style="color: var(--text-muted); font-size: 1.3rem;" title="No Measurement Sheet">
+                                    <i class="far fa-ruler-combined"></i>
+                                </span>
+                            {% endif %}
+                            
+                            <!-- Bill Summary -->
+                            {% if invoice.bill_summary %}
+                                <a href="{{ invoice.bill_summary.url }}" target="_blank" title="Download Bill Summary" style="color: var(--warning); font-size: 1.3rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                </a>
+                            {% else %}
+                                <span style="color: var(--text-muted); font-size: 1.3rem;" title="No Bill Summary">
+                                    <i class="far fa-file-invoice-dollar"></i>
+                                </span>
+                            {% endif %}
+                            
+                            <!-- Invoice PDF -->
+                            <a href="{% url 'invoices:invoice_pdf' invoice.pk %}" target="_blank" title="Download Invoice PDF" style="color: var(--primary); font-size: 1.3rem; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">
+                                <i class="fas fa-file-pdf"></i>
+                            </a>
+                        </div>
+                    </td>
+                    <td data-label="Actions" class="actions">
+                        <a href="{% url 'invoices:invoice_detail' invoice.pk %}" class="action-btn"><i class="fas fa-eye"></i></a>
+                        <a href="{% url 'invoices:edit_invoice' invoice.pk %}" class="action-btn"><i class="fas fa-edit"></i></a>
+                        <a href="{% url 'invoices:delete_invoice' invoice.pk %}" class="action-btn" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center">No invoices yet. <a href="{% url 'invoices:create_invoice' %}">Create one</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

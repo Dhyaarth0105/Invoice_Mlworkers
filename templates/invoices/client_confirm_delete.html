@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Delete Client{% endblock %}
+
+{% block authenticated_content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Delete Client</h2>
+    </div>
+    <div class="modal-body">
+        <p>Are you sure you want to delete <strong>{{ client.name }}</strong>?</p>
+        {% if client.invoices.exists %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> This client has {{ client.invoices.count }} invoice(s). Deleting will also delete all associated invoices.
+        </div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="modal-footer">
+                <a href="{% url 'invoices:client_list' %}" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-primary" style="background: var(--danger);"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+

@@ -1,0 +1,29 @@
+# Systemd service file for invoice_mlworkers
+# Place this file in /etc/systemd/system/invoice_mlworkers.service
+# Then run: systemctl daemon-reload
+# Enable: systemctl enable invoice_mlworkers
+# Start: systemctl start invoice_mlworkers
+
+[Unit]
+Description=Gunicorn daemon for invoice_mlworkers.com
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/invoice_mlworkers
+Environment="PATH=/var/www/invoice_mlworkers/venv/bin"
+ExecStart=/var/www/invoice_mlworkers/venv/bin/gunicorn \
+    --workers 3 \
+    --bind 127.0.0.1:8001 \
+    --timeout 120 \
+    --access-logfile /var/log/invoice_mlworkers/access.log \
+    --error-logfile /var/log/invoice_mlworkers/error.log \
+    invoice_project.wsgi:application
+
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+

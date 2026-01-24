@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Delete UOM{% endblock %}
+
+{% block authenticated_content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Delete UOM</h2>
+    </div>
+    <div class="modal-body">
+        <p>Are you sure you want to delete <strong>{{ uom.name }}</strong>?</p>
+        {% if uom.purchase_orders.exists %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> This UOM is being used in {{ uom.purchase_orders.count }} Purchase Order(s). Cannot delete.
+        </div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="modal-footer">
+                <a href="{% url 'invoices:uom_list' %}" class="btn-secondary">Cancel</a>
+                {% if not uom.purchase_orders.exists %}
+                <button type="submit" class="btn-primary" style="background: var(--danger);"><i class="fas fa-trash"></i> Delete</button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+

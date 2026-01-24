@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Delete Company{% endblock %}
+
+{% block authenticated_content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Delete Company</h2>
+    </div>
+    <div class="modal-body">
+        <p>Are you sure you want to delete <strong>{{ company.name }}</strong>?</p>
+        {% if company.invoices.exists %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> This company has {{ company.invoices.count }} invoice(s). Cannot delete.
+        </div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="modal-footer">
+                <a href="{% url 'invoices:company_list' %}" class="btn-secondary">Cancel</a>
+                {% if not company.invoices.exists %}
+                <button type="submit" class="btn-primary" style="background: var(--danger);"><i class="fas fa-trash"></i> Delete</button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

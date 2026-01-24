@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Manage Purchase Orders{% endblock %}
+{% block page_subtitle %}Add and manage your Purchase Orders. These are used when creating invoices.{% endblock %}
+
+{% block header_actions %}
+<button class="btn-primary" onclick="window.location.href='{% url 'invoices:create_po' %}'">
+    <i class="fas fa-plus"></i> Add New PO
+</button>
+{% endblock %}
+
+{% block authenticated_content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Purchase Orders</h2>
+        <div style="margin-top: 1rem;">
+            <form method="get" style="display: flex; gap: 1rem; align-items: center;">
+                <div class="form-group" style="margin: 0; min-width: 250px;">
+                    <label for="company_filter" style="margin-bottom: 0.5rem; display: block;">Filter by Company:</label>
+                    <select name="company" id="company_filter" class="form-control" onchange="this.form.submit()">
+                        <option value="">All Companies</option>
+                        {% for company in companies %}
+                            <option value="{{ company.id }}" {% if selected_company_id and selected_company_id|stringformat:"s" == company.id|stringformat:"s" %}selected{% endif %}>
+                                {{ company.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="table-container">
+        <table class="invoice-table" id="poTable">
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>PO Number</th>
+                    <th>Main Line #</th>
+                    <th>Main Line Description</th>
+                    <th>Subline #</th>
+                    <th>Subline Description</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                    <th>UOM</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for po in pos %}
+                    {% for item in po.subline_items.all %}
+                    <tr>
+                        {% if forloop.first %}
+                        <td data-label="Company" rowspan="{{ po.subline_items.count }}">
+                            {% if po.company %}
+                                <span class="badge">{{ po.company.name }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td data-label="PO Number" rowspan="{{ po.subline_items.count }}"><span class="invoice-id">{{ po.po_number }}</span></td>
+                        <td data-label="Main Line #" rowspan="{{ po.subline_items.count }}">{{ po.main_line_number }}</td>
+                        <td data-label="Main Line Desc" rowspan="{{ po.subline_items.count }}">{{ po.main_line_description }}</td>
+                        {% endif %}
+                        <td data-label="Subline #">{{ item.subline_number }}</td>
+                        <td data-label="Subline Desc">{{ item.subline_description }}</td>
+                        <td data-label="Qty">{{ item.quantity }}</td>
+                        <td data-label="Price" class="amount">₹{{ item.price|floatformat:2 }}</td>
+                        <td data-label="Total" class="amount">₹{{ item.get_total|floatformat:2 }}</td>
+                        <td data-label="UOM">{{ item.uom.name }}</td>
+                        {% if forloop.first %}
+                        <td data-label="Actions" class="actions" rowspan="{{ po.subline_items.count }}">
+                            <a href="{% url 'invoices:edit_po' po.pk %}" class="action-btn"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'invoices:delete_po' po.pk %}" class="action-btn" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td data-label="Company">
+                            {% if po.company %}
+                                <span class="badge">{{ po.company.name }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td data-label="PO Number"><span class="invoice-id">{{ po.po_number }}</span></td>
+                        <td data-label="Main Line #">{{ po.main_line_number }}</td>
+                        <td data-label="Main Line Desc">{{ po.main_line_description }}</td>
+                        <td colspan="6" class="text-center">No subline items</td>
+                        <td data-label="Actions" class="actions">
+                            <a href="{% url 'invoices:edit_po' po.pk %}" class="action-btn"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'invoices:delete_po' po.pk %}" class="action-btn" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% empty %}
+                <tr>
+                    <td colspan="11" class="text-center">No Purchase Orders yet. <a href="{% url 'invoices:create_po' %}">Create one</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

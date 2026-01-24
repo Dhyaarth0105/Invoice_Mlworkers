@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoice - {{ invoice.invoice_number }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #000;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .invoice-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .invoice-info label {
+            font-weight: bold;
+        }
+        .company-details, .client-details {
+            width: 48%;
+            margin-bottom: 15px;
+        }
+        .company-details h3, .client-details h3 {
+            margin: 0 0 8px 0;
+            font-size: 12px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 3px;
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .detail-item {
+            margin-bottom: 5px;
+        }
+        .detail-item label {
+            font-weight: bold;
+            display: inline-block;
+            width: 120px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        table th, table td {
+            border: 1px solid #000;
+            padding: 6px;
+            text-align: left;
+        }
+        table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            text-align: center;
+        }
+        table td {
+            text-align: right;
+        }
+        table td:first-child, table td:nth-child(2) {
+            text-align: left;
+        }
+        .summary {
+            margin-top: 15px;
+            margin-left: auto;
+            width: 300px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        .summary-row.total {
+            border-top: 2px solid #000;
+            border-bottom: 2px solid #000;
+            font-weight: bold;
+            font-size: 13px;
+            padding: 8px 0;
+            margin-top: 5px;
+        }
+        .amount-words {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid #000;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: right;
+        }
+        .footer-signature {
+            margin-top: 50px;
+            text-align: right;
+        }
+        .checkbox {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 1px solid #000;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        .checkbox.checked {
+            background-color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>TAX INVOICE</h1>
+        <div style="text-align: left; margin-top: 5px;">
+            <span class="checkbox {% if invoice.status == 'PAID' %}checked{% endif %}"></span> ORIGINAL
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+        <div class="company-details">
+            <h3>SELLER</h3>
+            <div><strong>{{ company.name }}</strong></div>
+            <div>{{ company.address|linebreaks }}</div>
+            {% if company.cin %}<div><strong>CIN NO.:</strong> {{ company.cin }}</div>{% endif %}
+            {% if company.email %}<div><strong>Email:</strong> {{ company.email }}</div>{% endif %}
+            {% if company.gstin %}<div><strong>GSTIN:</strong> {{ company.gstin }}</div>{% endif %}
+            {% if company.phone %}<div><strong>Contact:</strong> {{ company.phone }}</div>{% endif %}
+            {% if company.pan %}<div><strong>PAN:</strong> {{ company.pan }}</div>{% endif %}
+        </div>
+
+        <div class="client-details">
+            <h3>BUYER</h3>
+            <div><strong>{{ client.name }}</strong></div>
+            {% if client.address %}<div>{{ client.address|linebreaks }}</div>{% endif %}
+            {% if client.email %}<div><strong>Email:</strong> {{ client.email }}</div>{% endif %}
+            {% if client.phone %}<div><strong>Phone:</strong> {{ client.phone }}</div>{% endif %}
+        </div>
+    </div>
+
+    <div class="details-grid">
+        <div class="detail-item">
+            <label>Place of Supply (Seller's):</label>
+            <span>{{ company.address|truncatewords:10 }}</span>
+        </div>
+        <div class="detail-item">
+            <label>Vendor Code:</label>
+            <span>{{ invoice.vendor_code|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+            <label>Seller's GSTIN NO:</label>
+            <span>{{ company.gstin|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+            <label>Seller's PAN:</label>
+            <span>{{ company.pan|default:"-" }}</span>
+        </div>
+        <div class="detail-item">
+            <label>INVOICE NO:</label>
+            <span>{{ invoice.invoice_number }}</span>
+        </div>
+        <div class="detail-item">
+            <label>INVOICE DATE:</label>
+            <span>{{ invoice.invoice_date|date:"d/m/Y" }}</span>
+        </div>
+        {% if invoice.po_number %}
+        <div class="detail-item">
+            <label>P.O.No:</label>
+            <span>{{ invoice.po_number }}</span>
+        </div>
+        {% endif %}
+        {% if invoice.po_date %}
+        <div class="detail-item">
+            <label>P.O. Date:</label>
+            <span>{{ invoice.po_date|date:"d/m/Y" }}</span>
+        </div>
+        {% endif %}
+        <div class="detail-item">
+            <label>Place of Supply (Buyer's):</label>
+            <span>{{ invoice.place_of_supply|default:"-" }}</span>
+        </div>
+        {% if invoice.state_code %}
+        <div class="detail-item">
+            <label>State Code:</label>
+            <span>{{ invoice.state_code }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Sr. No.</th>
+                <th>Service Description</th>
+                <th>SAC Code</th>
+                <th>TOTAL UNIT (NOS)</th>
+                <th>RATE/UNIT (NOS).</th>
+                <th>Bill Amount Rs.</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ item.description }}</td>
+                <td>{{ item.sac_code|default:"-" }}</td>
+                <td>{{ item.quantity|floatformat:2 }}</td>
+                <td>{{ item.rate|floatformat:2 }}</td>
+                <td>{{ item.total|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <div class="summary-row">
+            <span>Sub Total</span>
+            <span>{{ invoice.subtotal|floatformat:2 }}</span>
+        </div>
+        <div class="summary-row">
+            <span>Tax: GST: CGST ({{ invoice.cgst_rate }}%):</span>
+            <span>{{ invoice.cgst_amount|floatformat:2 }}</span>
+        </div>
+        <div class="summary-row">
+            <span>Tax: GST: SGST ({{ invoice.sgst_rate }}%):</span>
+            <span>{{ invoice.sgst_amount|floatformat:2 }}</span>
+        </div>
+        <div class="summary-row total">
+            <span>Total</span>
+            <span>{{ invoice.total|floatformat:2 }}</span>
+        </div>
+        <div class="summary-row">
+            <span>Amount of Tax subject to Reverse charge:</span>
+            <span>{{ invoice.reverse_charge_amount|floatformat:2 }}</span>
+        </div>
+        <div class="summary-row">
+            <span>Reverse Charge (Yes/No):</span>
+            <span>{% if invoice.reverse_charge %}YES{% else %}NO{% endif %}</span>
+        </div>
+    </div>
+
+    <div class="amount-words">
+        <strong>Total Amount in Words:</strong><br>
+        {{ invoice.get_amount_in_words }}
+    </div>
+
+    <div class="footer-signature">
+        <div style="margin-bottom: 30px;">
+            <strong>For, {{ company.name }}</strong>
+        </div>
+        <div style="margin-top: 50px;">
+            <div style="border-top: 1px solid #000; width: 200px; margin-left: auto; padding-top: 5px;">
+                AUTHORIZED SIGNATORY
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

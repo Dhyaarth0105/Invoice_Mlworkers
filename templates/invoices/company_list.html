@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Companies{% endblock %}
+{% block page_subtitle %}Manage your companies{% endblock %}
+
+{% block header_actions %}
+<button class="btn-primary" onclick="window.location.href='{% url 'invoices:create_company' %}'">
+    <i class="fas fa-plus"></i> Add Company
+</button>
+{% endblock %}
+
+{% block authenticated_content %}
+<div class="card">
+    <div class="card-header">
+        <h2>My Companies</h2>
+    </div>
+    <div class="table-container">
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>Company Name</th>
+                    <th>GSTIN</th>
+                    <th>PAN</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Stamp</th>
+                    <th>Default</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for company in companies %}
+                <tr>
+                    <td data-label="Company"><strong>{{ company.name }}</strong></td>
+                    <td data-label="GSTIN">{{ company.gstin|default:"-" }}</td>
+                    <td data-label="PAN">{{ company.pan|default:"-" }}</td>
+                    <td data-label="Email">{{ company.email|default:"-" }}</td>
+                    <td data-label="Phone">{{ company.phone|default:"-" }}</td>
+                    <td data-label="Stamp">
+                        {% if company.stamp %}
+                        <img src="{{ company.stamp.url }}" alt="Stamp" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border);">
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Default">
+                        {% if company.is_default %}
+                        <span class="status paid">Default</span>
+                        {% else %}
+                        <span class="status pending">-</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Status">
+                        <span class="status {% if company.is_active %}paid{% else %}pending{% endif %}">
+                            {% if company.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </td>
+                    <td data-label="Actions" class="actions">
+                        <a href="{% url 'invoices:edit_company' company.pk %}" class="action-btn"><i class="fas fa-edit"></i></a>
+                        <a href="{% url 'invoices:delete_company' company.pk %}" class="action-btn" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center">No companies yet. <a href="{% url 'invoices:create_company' %}">Create one</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

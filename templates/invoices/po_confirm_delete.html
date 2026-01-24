@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Delete Purchase Order{% endblock %}
+
+{% block authenticated_content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Delete Purchase Order</h2>
+    </div>
+    <div class="modal-body">
+        <p>Are you sure you want to delete <strong>{{ po.po_number }}</strong>?</p>
+        {% if po.invoices.exists %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> This PO is referenced in {{ po.invoices.count }} invoice(s). Deleting may affect those invoices.
+        </div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="modal-footer">
+                <a href="{% url 'invoices:manage_po' %}" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-primary" style="background: var(--danger);"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+

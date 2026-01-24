@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block authenticated_content %}
+<div class="card">
+    <div class="card-header">
+        <h2>{{ title }}</h2>
+    </div>
+    <div class="modal-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.name.label }} <span class="text-danger">*</span></label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="text-danger">{{ form.name.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.sku.label }}</label>
+                    {{ form.sku }}
+                    {% if form.sku.errors %}
+                        <div class="text-danger">{{ form.sku.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.category.label }}</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                        <div class="text-danger">{{ form.category.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.unit_price.label }} <span class="text-danger">*</span></label>
+                    {{ form.unit_price }}
+                    {% if form.unit_price.errors %}
+                        <div class="text-danger">{{ form.unit_price.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.tax_rate.label }}</label>
+                    {{ form.tax_rate }}
+                    {% if form.tax_rate.errors %}
+                        <div class="text-danger">{{ form.tax_rate.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>
+                        {{ form.is_active }}
+                        {{ form.is_active.label }}
+                    </label>
+                    {% if form.is_active.errors %}
+                        <div class="text-danger">{{ form.is_active.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="{% url 'invoices:product_list' %}" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save Product</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+
