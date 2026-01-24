@@ -145,13 +145,13 @@ MESSAGE_TAGS = {
 
 # Email Configuration (Zoho SMTP) - credentials from environment variables
 EMAIL_BACKEND = 'accounts.email_backend.CustomEmailBackend'
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.zoho.in')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 465))
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.zoho.in')
+EMAIL_PORT = config('EMAIL_PORT', default=465, cast=int)
 EMAIL_USE_SSL = True
 EMAIL_USE_TLS = False
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'InvoicePro <noreply@invoicepro.com>')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='InvoicePro <noreply@invoicepro.com>')
 
 # OTP Settings
 OTP_EXPIRY_MINUTES = 10
