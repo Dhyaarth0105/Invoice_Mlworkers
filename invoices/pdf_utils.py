@@ -29,7 +29,7 @@ def generate_invoice_pdf(invoice, items, company, client):
         parent=styles['Heading1'],
         fontSize=16,
         textColor=colors.HexColor('#000000'),
-        alignment=TA_CENTER,
+        alignment=1,  # TA_CENTER
         spaceAfter=5,
         fontName='Helvetica-Bold',
     )
@@ -39,7 +39,7 @@ def generate_invoice_pdf(invoice, items, company, client):
         parent=styles['Normal'],
         fontSize=9,
         textColor=colors.HexColor('#000000'),
-        alignment=TA_LEFT,
+        alignment=0,  # TA_LEFT
         fontName='Helvetica',
     )
     
@@ -59,7 +59,7 @@ def generate_invoice_pdf(invoice, items, company, client):
     ]
     invoice_type_table = Table(invoice_type_data, colWidths=[60*mm, 60*mm, 60*mm])
     invoice_type_table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (-1, -1), TA_LEFT),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('FONTSIZE', (0, 0), (-1, -1), 9),
         ('LEFTPADDING', (0, 0), (-1, -1), 0),
         ('RIGHTPADDING', (0, 0), (-1, -1), 0),
@@ -153,8 +153,8 @@ def generate_invoice_pdf(invoice, items, company, client):
     
     two_col_table = Table(two_col_data, colWidths=[90*mm, 90*mm])
     two_col_table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (0, -1), TA_LEFT),
-        ('ALIGN', (1, 0), (1, -1), TA_LEFT),
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+        ('ALIGN', (1, 0), (1, -1), 'LEFT'),
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ('LEFTPADDING', (0, 0), (-1, -1), 0),
         ('RIGHTPADDING', (0, 0), (-1, -1), 0),
@@ -181,10 +181,10 @@ def generate_invoice_pdf(invoice, items, company, client):
     items_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (0, -1), TA_CENTER),
-        ('ALIGN', (1, 0), (1, -1), TA_LEFT),
-        ('ALIGN', (2, 0), (2, -1), TA_CENTER),
-        ('ALIGN', (3, 0), (-1, -1), TA_RIGHT),
+        ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+        ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+        ('ALIGN', (2, 0), (2, -1), 'CENTER'),
+        ('ALIGN', (3, 0), (-1, -1), 'RIGHT'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 9),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
@@ -220,8 +220,8 @@ def generate_invoice_pdf(invoice, items, company, client):
     
     summary_table = Table(summary_table_data, colWidths=[120*mm, 60*mm])
     summary_table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (0, -1), TA_LEFT),
-        ('ALIGN', (1, 0), (1, -1), TA_RIGHT),
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
         ('FONTSIZE', (0, 0), (-1, -1), 9),
         ('GRID', (0, 0), (-1, -2), 1, colors.black),
         ('LINEBELOW', (0, 2), (-1, 2), 2, colors.black),
