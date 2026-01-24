@@ -49,10 +49,51 @@
 
 <!-- Main Grid -->
 <div class="content-grid">
-    <!-- Recent Invoices -->
-    <section class="card invoices-section">
+    <!-- Revenue Chart -->
+    <section class="card" style="grid-column: 1 / -1;">
         <div class="card-header">
-            <h2>Recent Invoices</h2>
+            <h2><i class="fas fa-chart-line"></i> Revenue Trend (Last 6 Months)</h2>
+        </div>
+        <div class="chart-container" style="height: 300px;">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </section>
+
+    <!-- Invoice Status Breakdown -->
+    <section class="card">
+        <div class="card-header">
+            <h2><i class="fas fa-chart-pie"></i> Invoice Status</h2>
+        </div>
+        <div class="chart-container" style="height: 280px;">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </section>
+
+    <!-- Top Clients -->
+    <section class="card top-clients">
+        <div class="card-header">
+            <h2><i class="fas fa-users"></i> Top Clients</h2>
+        </div>
+        <div class="clients-list">
+            {% for client in top_clients %}
+            <div class="client-item">
+                <div class="client-avatar large">{{ client.get_avatar_initials }}</div>
+                <div class="client-info">
+                    <span class="name">{{ client.name }}</span>
+                    <span class="invoices">{{ client.invoice_count }} invoices</span>
+                </div>
+                <span class="client-revenue">₹{{ client.total_revenue|default:0|floatformat:0 }}</span>
+            </div>
+            {% empty %}
+            <p class="text-center">No clients yet</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Recent Invoices -->
+    <section class="card invoices-section" style="grid-column: 1 / -1;">
+        <div class="card-header">
+            <h2><i class="fas fa-file-invoice"></i> Recent Invoices</h2>
             <a href="{% url 'invoices:invoice_list' %}" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
         </div>
         <div class="table-container">
@@ -94,27 +135,123 @@
             </table>
         </div>
     </section>
-
-    <!-- Top Clients -->
-    <section class="card top-clients">
-        <div class="card-header">
-            <h2>Top Clients</h2>
-        </div>
-        <div class="clients-list">
-            {% for client in top_clients %}
-            <div class="client-item">
-                <div class="client-avatar large">{{ client.get_avatar_initials }}</div>
-                <div class="client-info">
-                    <span class="name">{{ client.name }}</span>
-                    <span class="invoices">{{ client.invoice_count }} invoices</span>
-                </div>
-                <span class="client-revenue">₹{{ client.total_revenue|default:0|floatformat:0 }}</span>
-            </div>
-            {% empty %}
-            <p class="text-center">No clients yet</p>
-            {% endfor %}
-        </div>
-    </section>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Revenue Trend Chart
+    const revenueCtx = document.getElementById('revenueChart')?.getContext('2d');
+    if (revenueCtx) {
+        const monthlyData = [
+            {% for item in monthly_revenue %}
+            {month: '{{ item.month }}', revenue: {{ item.revenue }}}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: monthlyData.map(d => d.month),
+                datasets: [{
+                    label: 'Revenue',
+                    data: monthlyData.map(d => d.revenue),
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#6366f1',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '₹' + context.parsed.y.toLocaleString('en-IN');
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { 
+                        grid: { display: false, color: 'rgba(255,255,255,0.05)' }, 
+                        ticks: { color: '#64748b' } 
+                    },
+                    y: { 
+                        grid: { color: 'rgba(255,255,255,0.05)' }, 
+                        ticks: { 
+                            color: '#64748b', 
+                            callback: function(v) {
+                                return '₹' + (v / 1000).toFixed(0) + 'k';
+                            }
+                        } 
+                    }
+                }
+            }
+        });
+    }
+
+    // Status Pie Chart
+    const statusCtx = document.getElementById('statusChart')?.getContext('2d');
+    if (statusCtx) {
+        const statusData = {
+            'Paid': {{ status_breakdown.PAID }},
+            'Pending': {{ status_breakdown.PENDING }},
+            'Overdue': {{ status_breakdown.OVERDUE }},
+            'Draft': {{ status_breakdown.DRAFT }}
+        };
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusData),
+                datasets: [{
+                    data: Object.values(statusData),
+                    backgroundColor: [
+                        '#10b981',
+                        '#f59e0b',
+                        '#ef4444',
+                        '#64748b'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#94a3b8',
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return label + ': ' + value + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
 

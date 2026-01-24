@@ -22,10 +22,37 @@ def dashboard(request):
     total_invoices = Invoice.objects.count()
     paid_invoices = Invoice.objects.filter(status='PAID')
     pending_invoices = Invoice.objects.filter(status='PENDING')
+    overdue_invoices = Invoice.objects.filter(status='OVERDUE')
+    draft_invoices = Invoice.objects.filter(status='DRAFT')
     
     paid_amount = paid_invoices.aggregate(total=Sum('total'))['total'] or Decimal('0')
     pending_amount = pending_invoices.aggregate(total=Sum('total'))['total'] or Decimal('0')
+    overdue_amount = overdue_invoices.aggregate(total=Sum('total'))['total'] or Decimal('0')
     active_clients = Client.objects.filter(is_active=True).count()
+    
+    # Status breakdown for pie chart
+    status_breakdown = {
+        'PAID': paid_invoices.count(),
+        'PENDING': pending_invoices.count(),
+        'OVERDUE': overdue_invoices.count(),
+        'DRAFT': draft_invoices.count(),
+    }
+    
+    # Monthly revenue for last 6 months
+    from datetime import datetime, timedelta
+    monthly_revenue = []
+    for i in range(5, -1, -1):
+        month_start = (timezone.now() - timedelta(days=30*i)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        revenue = Invoice.objects.filter(
+            status='PAID',
+            invoice_date__gte=month_start,
+            invoice_date__lte=month_end
+        ).aggregate(total=Sum('total'))['total'] or Decimal('0')
+        monthly_revenue.append({
+            'month': month_start.strftime('%b %Y'),
+            'revenue': float(revenue)
+        })
     
     # Recent invoices
     recent_invoices = Invoice.objects.select_related('client').order_by('-created_at')[:5]
@@ -40,9 +67,12 @@ def dashboard(request):
         'total_invoices': total_invoices,
         'paid_amount': paid_amount,
         'pending_amount': pending_amount,
+        'overdue_amount': overdue_amount,
         'active_clients': active_clients,
         'recent_invoices': recent_invoices,
         'top_clients': top_clients,
+        'status_breakdown': status_breakdown,
+        'monthly_revenue': monthly_revenue,
     }
     return render(request, 'invoices/dashboard.html', context)
 

@@ -41,13 +41,34 @@
 </div>
 
 <div class="content-grid">
+    <!-- Monthly Revenue Chart -->
     <section class="card" style="grid-column: 1 / -1;">
         <div class="card-header">
-            <h2>Monthly Revenue Trend</h2>
+            <h2><i class="fas fa-chart-bar"></i> Monthly Revenue Trend</h2>
             <button class="btn-primary"><i class="fas fa-download"></i> Export Report</button>
         </div>
         <div class="chart-container" style="height: 300px;">
             <canvas id="reportChart"></canvas>
+        </div>
+    </section>
+
+    <!-- Invoice Status Breakdown -->
+    <section class="card">
+        <div class="card-header">
+            <h2><i class="fas fa-chart-pie"></i> Invoice Status Distribution</h2>
+        </div>
+        <div class="chart-container" style="height: 280px;">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </section>
+
+    <!-- Top Clients Revenue -->
+    <section class="card">
+        <div class="card-header">
+            <h2><i class="fas fa-chart-bar"></i> Top Clients Revenue</h2>
+        </div>
+        <div class="chart-container" style="height: 280px;">
+            <canvas id="clientChart"></canvas>
         </div>
     </section>
 </div>
@@ -56,6 +77,7 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Monthly Revenue Bar Chart
     const ctx = document.getElementById('reportChart')?.getContext('2d');
     if (ctx) {
         const monthlyData = [
@@ -79,10 +101,137 @@ document.addEventListener('DOMContentLoaded', function() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '₹' + context.parsed.y.toLocaleString('en-IN');
+                            }
+                        }
+                    }
+                },
                 scales: {
-                    x: { grid: { display: false }, ticks: { color: '#64748b' } },
-                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', callback: v => '₹' + (v / 1000) + 'k' } }
+                    x: { 
+                        grid: { display: false, color: 'rgba(255,255,255,0.05)' }, 
+                        ticks: { color: '#64748b' } 
+                    },
+                    y: { 
+                        grid: { color: 'rgba(255,255,255,0.05)' }, 
+                        ticks: { 
+                            color: '#64748b', 
+                            callback: function(v) {
+                                return '₹' + (v / 1000).toFixed(0) + 'k';
+                            }
+                        } 
+                    }
+                }
+            }
+        });
+    }
+
+    // Status Pie Chart
+    const statusCtx = document.getElementById('statusChart')?.getContext('2d');
+    if (statusCtx) {
+        const statusData = {
+            'Paid': {{ status_breakdown.PAID }},
+            'Pending': {{ status_breakdown.PENDING }},
+            'Overdue': {{ status_breakdown.OVERDUE }},
+            'Draft': {{ status_breakdown.DRAFT }}
+        };
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusData),
+                datasets: [{
+                    data: Object.values(statusData),
+                    backgroundColor: [
+                        '#10b981',
+                        '#f59e0b',
+                        '#ef4444',
+                        '#64748b'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#94a3b8',
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return label + ': ' + value + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Top Clients Revenue Chart
+    const clientCtx = document.getElementById('clientChart')?.getContext('2d');
+    if (clientCtx) {
+        const clientData = [
+            {% for item in client_revenue %}
+            {name: '{{ item.name }}', revenue: {{ item.revenue }}}{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+        new Chart(clientCtx, {
+            type: 'bar',
+            data: {
+                labels: clientData.map(d => d.name),
+                datasets: [{
+                    label: 'Revenue',
+                    data: clientData.map(d => d.revenue),
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: '#10b981',
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '₹' + context.parsed.x.toLocaleString('en-IN');
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { 
+                        grid: { color: 'rgba(255,255,255,0.05)' }, 
+                        ticks: { 
+                            color: '#64748b',
+                            callback: function(v) {
+                                return '₹' + (v / 1000).toFixed(0) + 'k';
+                            }
+                        } 
+                    },
+                    y: { 
+                        grid: { display: false, color: 'rgba(255,255,255,0.05)' }, 
+                        ticks: { color: '#64748b' } 
+                    }
                 }
             }
         });
