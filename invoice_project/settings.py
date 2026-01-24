@@ -4,17 +4,26 @@ Django settings for invoice_project project.
 
 import os
 from pathlib import Path
+try:
+    from decouple import config
+except ImportError:
+    # Fallback if decouple not installed
+    def config(key, default=None, cast=None):
+        value = os.environ.get(key, default)
+        if cast and value:
+            return cast(value)
+        return value
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-v=$e@w0@l_0awg0k^jo$g*rmxmo-dh=!ujmni^ebf5&)2)@ftv'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-v=$e@w0@l_0awg0k^jo$g*rmxmo-dh=!ujmni^ebf5&)2)@ftv')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 # Application definition
 INSTALLED_APPS = [
