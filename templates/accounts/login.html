@@ -1,434 +1,486 @@
-{% extends 'base.html' %}
 {% load static %}
-
-{% block title %}Login - InvoicePro{% endblock %}
-
-{% block unauthenticated_content %}
-<div class="auth-wrapper">
-    <div class="auth-container">
-        <div class="auth-card animate-fade-in">
-            <!-- Logo & Header -->
-            <div class="auth-header">
-                <div class="auth-logo">
-                    <i class="fas fa-file-invoice-dollar"></i>
-                </div>
-                <h1 class="auth-title">Welcome Back</h1>
-                <p class="auth-subtitle">Sign in to your InvoicePro account</p>
-            </div>
-
-            <!-- Login Form -->
-            <form method="post" class="auth-form">
-                {% csrf_token %}
-                
-                <div class="form-floating">
-                    {{ form.username }}
-                    <label for="id_username"><i class="fas fa-user me-2"></i>Username or Email</label>
-                </div>
-
-                <div class="form-floating">
-                    {{ form.password }}
-                    <label for="id_password"><i class="fas fa-lock me-2"></i>Password</label>
-                </div>
-
-                {% if form.errors %}
-                <div class="alert alert-danger alert-dismissible fade show py-2" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i>Invalid username or password.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endif %}
-
-                <button type="submit" class="btn btn-primary btn-auth">
-                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-    
-    /* Override any base styles for auth pages */
-    body:has(.auth-wrapper) {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%) !important;
-        min-height: 100vh !important;
-        position: relative !important;
-        overflow: hidden !important;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-    
-    /* Fallback for browsers that don't support :has() */
-    body {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
-        min-height: 100vh;
-        position: relative;
-        overflow: hidden;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    }
-    
-    /* Animated background particles */
-    body::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: 
-            radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 40% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
-        animation: backgroundShift 15s ease infinite;
-        z-index: 0;
-    }
-    
-    @keyframes backgroundShift {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.8; }
-    }
-    
-    .auth-wrapper {
-        width: 100%;
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        position: relative;
-        z-index: 1;
-    }
-    
-    .auth-container {
-        width: 100%;
-        max-width: 480px;
-        position: relative;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .auth-card {
-        background: rgba(255, 255, 255, 0.98);
-        backdrop-filter: blur(30px);
-        border-radius: 24px;
-        padding: 28px 28px;
-        box-shadow: 
-            0 20px 60px rgba(0, 0, 0, 0.3),
-            0 0 0 1px rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        position: relative;
-        overflow: hidden;
-        width: 100%;
-    }
-    
-    .auth-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #3b82f6 0%, #10b981 50%, #8b5cf6 100%);
-    }
-    
-    .auth-header {
-        text-align: center;
-        margin-bottom: 20px;
-    }
-    
-    .auth-logo {
-        width: 64px;
-        height: 64px;
-        background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 12px;
-        font-size: 32px;
-        color: white;
-        box-shadow: 
-            0 10px 30px rgba(59, 130, 246, 0.4),
-            0 0 0 4px rgba(59, 130, 246, 0.1);
-        position: relative;
-        transition: transform 0.3s ease;
-    }
-    
-    .auth-logo:hover {
-        transform: scale(1.05) rotate(5deg);
-    }
-    
-    .auth-logo::after {
-        content: '';
-        position: absolute;
-        inset: -2px;
-        border-radius: 24px;
-        padding: 2px;
-        background: linear-gradient(135deg, #3b82f6, #10b981, #8b5cf6);
-        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        -webkit-mask-composite: xor;
-        mask-composite: exclude;
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
-    
-    .auth-logo:hover::after {
-        opacity: 1;
-    }
-    
-    .auth-title {
-        font-size: 24px;
-        font-weight: 800;
-        background: linear-gradient(135deg, #1e293b 0%, #3b82f6 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 4px;
-        letter-spacing: -0.5px;
-    }
-    
-    .auth-subtitle {
-        color: #64748b;
-        font-size: 14px;
-        margin: 0;
-        font-weight: 400;
-    }
-    
-    .auth-form {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        margin-bottom: 0;
-    }
-    
-    .form-floating {
-        position: relative;
-    }
-    
-    .form-floating .form-control {
-        height: 50px;
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        font-size: 14px;
-        padding: 16px 14px 4px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        background: #f8fafc;
-        color: #1e293b;
-    }
-    
-    .form-floating .form-control:focus {
-        outline: none;
-        border-color: #3b82f6;
-        background: white;
-        box-shadow: 
-            0 0 0 4px rgba(59, 130, 246, 0.1),
-            0 4px 12px rgba(59, 130, 246, 0.15);
-        transform: translateY(-1px);
-    }
-    
-    .form-floating .form-control:focus + label,
-    .form-floating .form-control:not(:placeholder-shown) + label {
-        color: #3b82f6;
-        transform: translateY(-8px) scale(0.85);
-    }
-    
-    .form-floating label {
-        color: #94a3b8;
-        padding: 16px 14px;
-        font-size: 14px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        pointer-events: none;
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 100%;
-        display: flex;
-        align-items: center;
-    }
-    
-    .form-floating label i {
-        margin-right: 8px;
-        font-size: 14px;
-    }
-    
-    .forgot-link {
-        color: #3b82f6;
-        font-size: 14px;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.2s;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
-    
-    .forgot-link:hover {
-        color: #2563eb;
-        text-decoration: none;
-        transform: translateX(2px);
-    }
-    
-    .btn-auth {
-        height: 50px;
-        border-radius: 12px;
-        font-size: 15px;
-        font-weight: 700;
-        background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
-        border: none;
-        margin-top: 4px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        color: white;
-        box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .btn-auth::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: left 0.5s;
-    }
-    
-    .btn-auth:hover::before {
-        left: 100%;
-    }
-    
-    .btn-auth:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.5);
-    }
-    
-    .btn-auth:active {
-        transform: translateY(0);
-    }
-    
-    .btn-auth i {
-        margin-right: 8px;
-    }
-    
-    .alert-danger {
-        background: #fef2f2;
-        border: 2px solid #fecaca;
-        color: #991b1b;
-        border-radius: 10px;
-        padding: 8px 12px;
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 2px;
-    }
-    
-    .alert-danger i {
-        color: #dc2626;
-    }
-    
-    .animate-fade-in {
-        animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - InvoicePro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        to {
-            opacity: 1;
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            background: #f8fafc;
+        }
+
+        .login-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Left Panel - Branding */
+        .brand-panel {
+            flex: 1;
+            background: linear-gradient(135deg, #1e3a5f 0%, #0d1b2a 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        .brand-panel::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            right: -30%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+            animation: pulse 20s ease-in-out infinite reverse;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .brand-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .brand-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 36px;
+            color: white;
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .brand-title {
+            font-size: 42px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+        }
+
+        .brand-subtitle {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            margin-bottom: 50px;
+        }
+
+        .features {
+            text-align: left;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .feature-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #10b981;
+        }
+
+        .feature-text {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        /* Right Panel - Login Form */
+        .form-panel {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            background: white;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .form-header {
+            margin-bottom: 40px;
+        }
+
+        .form-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .form-header p {
+            font-size: 16px;
+            color: #64748b;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .form-input {
+            width: 100%;
+            height: 54px;
+            padding: 0 16px 0 48px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: inherit;
+            color: #1e293b;
+            background: #f9fafb;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-input:focus + i,
+        .input-wrapper:focus-within i {
+            color: #3b82f6;
+        }
+
+        .form-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #dc2626;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .error-message i {
+            font-size: 18px;
+        }
+
+        .btn-login {
+            height: 54px;
+            background: linear-gradient(135deg, #1e3a5f 0%, #0d1b2a 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(30, 58, 95, 0.3);
+        }
+
+        .btn-login:active {
             transform: translateY(0);
         }
-    }
-    
-    /* Responsive Design */
-    @media (max-width: 576px) {
-        .auth-card {
-            padding: 32px 24px;
-            border-radius: 24px;
+
+        .form-footer {
+            text-align: center;
+            margin-top: 32px;
+            padding-top: 32px;
+            border-top: 1px solid #e5e7eb;
         }
-        
-        .auth-logo {
-            width: 72px;
-            height: 72px;
-            font-size: 32px;
-            border-radius: 20px;
-        }
-        
-        .auth-title {
-            font-size: 26px;
-        }
-        
-        .auth-subtitle {
+
+        .form-footer p {
+            color: #64748b;
             font-size: 14px;
         }
-        
-        .form-floating .form-control {
-            height: 56px;
-            font-size: 15px;
-        }
-        
-        .btn-auth {
-            height: 56px;
-            font-size: 16px;
-        }
-    }
-    
-    /* Dark mode support for form inputs */
-    @media (prefers-color-scheme: dark) {
-        .auth-card {
-            background: rgba(30, 41, 59, 0.95);
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-        
-        .form-floating .form-control {
-            background: rgba(15, 23, 42, 0.5);
-            border-color: rgba(148, 163, 184, 0.2);
-            color: #f1f5f9;
-        }
-        
-        .form-floating .form-control:focus {
-            background: rgba(15, 23, 42, 0.8);
-            border-color: #3b82f6;
-        }
-        
-        .auth-title {
-            background: linear-gradient(135deg, #f1f5f9 0%, #3b82f6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .auth-subtitle {
-            color: #94a3b8;
-        }
-        
-        .auth-divider span {
-            background: rgba(30, 41, 59, 0.95);
-        }
-        
-        .auth-footer {
-            border-top-color: rgba(148, 163, 184, 0.2);
-        }
-        
-        .btn-signup {
-            background: rgba(15, 23, 42, 0.5);
-            border-color: #3b82f6;
-        }
-    }
-</style>
-{% endblock %}
 
+        .form-footer a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Decorative Elements */
+        .decorative-circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .circle-1 {
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            right: -100px;
+        }
+
+        .circle-2 {
+            width: 200px;
+            height: 200px;
+            bottom: 50px;
+            left: -50px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .brand-panel {
+                display: none;
+            }
+
+            .form-panel {
+                padding: 24px;
+            }
+
+            .login-container {
+                background: linear-gradient(135deg, #1e3a5f 0%, #0d1b2a 100%);
+            }
+
+            .form-panel {
+                margin: 20px;
+                border-radius: 24px;
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-panel {
+                margin: 16px;
+                padding: 24px;
+            }
+
+            .form-header h1 {
+                font-size: 26px;
+            }
+
+            .form-input {
+                height: 50px;
+            }
+
+            .btn-login {
+                height: 50px;
+            }
+        }
+
+        /* Animation */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.8s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Left Panel - Branding -->
+        <div class="brand-panel">
+            <div class="decorative-circle circle-1"></div>
+            <div class="decorative-circle circle-2"></div>
+            
+            <div class="brand-content slide-in">
+                <div class="brand-logo">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <h1 class="brand-title">InvoicePro</h1>
+                <p class="brand-subtitle">Professional invoice management system for modern businesses</p>
+                
+                <div class="features">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <span class="feature-text">Create invoices in seconds</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <span class="feature-text">Track payments & revenue</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <span class="feature-text">Generate GST-compliant PDFs</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <span class="feature-text">Secure & reliable platform</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Login Form -->
+        <div class="form-panel">
+            <div class="form-container fade-in">
+                <div class="form-header">
+                    <h1>Welcome back</h1>
+                    <p>Enter your credentials to access your account</p>
+                </div>
+
+                <form method="post" class="login-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="id_username">Username</label>
+                        <div class="input-wrapper">
+                            <input type="text" 
+                                   id="id_username" 
+                                   name="username" 
+                                   class="form-input" 
+                                   placeholder="Enter your username"
+                                   required
+                                   autocomplete="username">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_password">Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" 
+                                   id="id_password" 
+                                   name="password" 
+                                   class="form-input" 
+                                   placeholder="Enter your password"
+                                   required
+                                   autocomplete="current-password">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+
+                    {% if form.errors %}
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Invalid username or password. Please try again.</span>
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn-login">
+                        <span>Sign In</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <div class="form-footer">
+                    <p>Powered by <a href="https://dhyaarthtechnology.com" target="_blank">Dhyaarth Technology</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
