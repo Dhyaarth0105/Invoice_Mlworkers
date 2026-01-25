@@ -571,6 +571,15 @@ def reports(request):
     paid_count = Invoice.objects.filter(status='PAID').count()
     pending_count = Invoice.objects.filter(status='PENDING').count()
     overdue_count = Invoice.objects.filter(status='OVERDUE').count()
+    draft_count = Invoice.objects.filter(status='DRAFT').count()
+    
+    # Status breakdown for pie chart
+    status_breakdown = {
+        'PAID': paid_count,
+        'PENDING': pending_count,
+        'OVERDUE': overdue_count,
+        'DRAFT': draft_count,
+    }
     
     # Monthly revenue (last 6 months)
     monthly_revenue = []
@@ -578,7 +587,6 @@ def reports(request):
         month_start = date.today().replace(day=1) - timedelta(days=30*i)
         month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
         revenue = Invoice.objects.filter(
-            status='PAID',
             invoice_date__gte=month_start,
             invoice_date__lte=month_end
         ).aggregate(total=Sum('total'))['total'] or Decimal('0')
@@ -587,12 +595,26 @@ def reports(request):
             'revenue': float(revenue)
         })
     
+    # Top clients revenue
+    top_clients = Client.objects.annotate(
+        total_revenue=Sum('invoices__total')
+    ).filter(total_revenue__gt=0).order_by('-total_revenue')[:5]
+    
+    client_revenue = []
+    for client in top_clients:
+        client_revenue.append({
+            'name': client.name[:20] + '...' if len(client.name) > 20 else client.name,
+            'revenue': float(client.total_revenue or 0)
+        })
+    
     context = {
         'total_revenue': total_revenue,
         'paid_count': paid_count,
         'pending_count': pending_count,
         'overdue_count': overdue_count,
         'monthly_revenue': monthly_revenue,
+        'status_breakdown': status_breakdown,
+        'client_revenue': client_revenue,
     }
     return render(request, 'invoices/reports.html', context)
 

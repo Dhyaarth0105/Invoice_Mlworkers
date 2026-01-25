@@ -69,30 +69,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'invoice_project.wsgi.application'
 
-# Database - SQLite (temporary for testing, switch to PostgreSQL later)
+# Database - PostgreSQL
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'invoice_db',
+        'USER': 'postgres',
+        'PASSWORD': 'root@123',
+        'HOST': 'localhost',
+        'PORT': '5432',
+        'CONN_MAX_AGE': 60,
+        'CONN_HEALTH_CHECKS': True,
+        'OPTIONS': {
+            'connect_timeout': 10,
+        }
     }
 }
-
-# Uncomment below for PostgreSQL:
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'invoice_db',
-#         'USER': 'postgres',
-#         'PASSWORD': 'root@123',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#         'CONN_MAX_AGE': 60,
-#         'CONN_HEALTH_CHECKS': True,
-#         'OPTIONS': {
-#             'connect_timeout': 10,
-#         }
-#     }
-# }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
