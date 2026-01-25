@@ -69,15 +69,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'invoice_project.wsgi.application'
 
-# Database - PostgreSQL
+# Database - PostgreSQL (uses environment variables in production)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'invoice_db',
-        'USER': 'postgres',
-        'PASSWORD': 'root@123',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': config('DB_NAME', default='invoice_db'),
+        'USER': config('DB_USER', default='postgres'),
+        'PASSWORD': config('DB_PASSWORD', default='root@123'),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
         'CONN_MAX_AGE': 60,
         'CONN_HEALTH_CHECKS': True,
         'OPTIONS': {
