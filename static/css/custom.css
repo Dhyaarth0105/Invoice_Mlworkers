@@ -65,15 +65,20 @@ body {
 }
 
 .sidebar-overlay {
-    display: none;
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.7);
     z-index: 99;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .sidebar-overlay.active {
-    display: block;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 /* Sidebar */
@@ -1346,6 +1351,11 @@ body {
 
     .sidebar-overlay {
         z-index: 999 !important;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .sidebar {
+        z-index: 1000 !important;
     }
 
     /* Main Content Layout */
@@ -1731,4 +1741,18 @@ body {
         min-height: 48px !important;
         padding: 12px !important;
     }
+}
+
+/* Ensure nav items are always clickable */
+.nav-item {
+    position: relative;
+    z-index: 1;
+    -webkit-tap-highlight-color: rgba(99, 102, 241, 0.3);
+    touch-action: manipulation;
+}
+
+/* Ensure links and buttons are always clickable */
+a, button {
+    cursor: pointer;
+    -webkit-tap-highlight-color: rgba(99, 102, 241, 0.2);
 }

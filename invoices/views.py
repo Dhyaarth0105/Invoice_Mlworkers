@@ -3,9 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from datetime import date, timedelta
 from decimal import Decimal
+import json
 from .models import (
     Client, Product, PurchaseOrder, POLineItem, Invoice, InvoiceItem, Company, CompanySettings, UOM, Payment
 )
@@ -833,3 +834,117 @@ def api_po_line_item_detail(request, item_id):
         })
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+
+@login_required
+def eway_bill_data(request, pk):
+    """Generate e-way bill JSON data for invoice"""
+    invoice = get_object_or_404(Invoice, pk=pk)
+    company = invoice.company
+    client = invoice.client
+    items = invoice.items.all()
+    
+    if not company:
+        messages.error(request, 'Company not found for this invoice.')
+        return redirect('invoices:invoice_detail', pk=pk)
+    
+    # Prepare e-way bill data according to GSTN format
+    eway_bill_data = {
+        "version": "1.0.0421",
+        "billLists": [
+            {
+                "userGstin": company.gstin or "",
+                "supplyType": "O",  # O=Outward, I=Inward
+                "subSupplyType": "1",  # 1=Supply, 2=Import, etc.
+                "docType": "INV",  # INV=Invoice, CHL=Challan, etc.
+                "docNo": invoice.invoice_number,
+                "docDate": invoice.invoice_date.strftime("%d/%m/%Y"),
+                "fromGstin": company.gstin or "",
+                "fromTrdName": company.name,
+                "fromAddr1": company.address.split('\n')[0] if company.address else "",
+                "fromAddr2": '\n'.join(company.address.split('\n')[1:]) if company.address and '\n' in company.address else "",
+                "fromPlace": company.address.split(',')[-1].strip() if company.address else "",
+                "fromPincode": "",  # Add if available in Company model
+                "fromStateCode": "",  # Extract from address or add field
+                "actFromStateCode": "",  # Actual state code
+                "toGstin": client.address or "",  # Client GSTIN if available
+                "toTrdName": client.name,
+                "toAddr1": client.address.split('\n')[0] if client.address else "",
+                "toAddr2": '\n'.join(client.address.split('\n')[1:]) if client.address and '\n' in client.address else "",
+                "toPlace": client.address.split(',')[-1].strip() if client.address else "",
+                "toPincode": "",
+                "toStateCode": invoice.state_code or "",
+                "actToStateCode": invoice.state_code or "",
+                "transactionType": "1",  # 1=Regular, 2=Bill to Ship to
+                "otherValue": 0,
+                "totInvValue": float(invoice.total),
+                "cgstValue": float(invoice.cgst_amount),
+                "sgstValue": float(invoice.sgst_amount),
+                "igstValue": 0,
+                "cessValue": 0,
+                "transMode": "",  # 1=Road, 2=Rail, 3=Air, 4=Ship
+                "transDistance": "",
+                "transporterName": "",
+                "transporterId": "",
+                "transporterDocNo": "",
+                "transporterDocDate": "",
+                "vehicleNo": "",
+                "vehicleType": "",
+                "itemList": []
+            }
+        ]
+    }
+    
+    # Add items
+    for idx, item in enumerate(items, 1):
+        item_data = {
+            "itemNo": idx,
+            "productName": item.description,
+            "productDesc": item.description,
+            "hsnCode": item.sac_code or "",
+            "qtyUnit": "",  # UOM code
+            "quantity": float(item.quantity),
+            "taxableAmount": float(item.total),
+            "igstRate": 0,
+            "igstValue": 0,
+            "cgstRate": float(invoice.cgst_rate),
+            "cgstValue": float(item.total * invoice.cgst_rate / 100),
+            "sgstRate": float(invoice.sgst_rate),
+            "sgstValue": float(item.total * invoice.sgst_rate / 100),
+            "cessRate": 0,
+            "cessValue": 0,
+            "cessNonAdvolValue": 0
+        }
+        eway_bill_data["billLists"][0]["itemList"].append(item_data)
+    
+    # Return as downloadable JSON file
+    response = HttpResponse(
+        json.dumps(eway_bill_data, indent=2),
+        content_type='application/json'
+    )
+    response['Content-Disposition'] = f'attachment; filename="eway_bill_{invoice.invoice_number}.json"'
+    return response
+
+
+@login_required
+def eway_bill_info(request, pk):
+    """Show e-way bill information page"""
+    invoice = get_object_or_404(Invoice, pk=pk)
+    company = invoice.company
+    client = invoice.client
+    items = invoice.items.all()
+    
+    if not company:
+        messages.error(request, 'Company not found for this invoice.')
+        return redirect('invoices:invoice_detail', pk=pk)
+    
+    # Prepare e-way bill details for display
+    eway_info = {
+        'invoice': invoice,
+        'company': company,
+        'client': client,
+        'items': items,
+        'eway_portal_url': 'https://ewaybillgst.gov.in/',
+    }
+    
+    return render(request, 'invoices/eway_bill_info.html', eway_info)

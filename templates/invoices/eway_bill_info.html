@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}E-Way Bill - {{ invoice.invoice_number }}{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'invoices:invoice_detail' invoice.pk %}" class="btn-primary" style="background: var(--bg-hover);">
+    <i class="fas fa-arrow-left"></i> Back to Invoice
+</a>
+<a href="{% url 'invoices:eway_bill_data' invoice.pk %}" class="btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+    <i class="fas fa-download"></i> Download JSON
+</a>
+<a href="https://ewaybillgst.gov.in/" target="_blank" class="btn-primary">
+    <i class="fas fa-external-link-alt"></i> Open E-Way Bill Portal
+</a>
+{% endblock %}
+
+{% block authenticated_content %}
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-header">
+        <h2>E-Way Bill Information</h2>
+        <p style="color: var(--text-secondary); margin: 0;">Invoice: {{ invoice.invoice_number }}</p>
+    </div>
+    <div class="modal-body">
+        <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <p style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-info-circle" style="color: #10b981; margin-right: 8px;"></i>
+                <strong>Instructions:</strong> Download the JSON file and upload it to the 
+                <a href="https://ewaybillgst.gov.in/" target="_blank" style="color: #10b981; text-decoration: underline;">E-Way Bill Portal</a> 
+                for bulk generation. You may need to fill in additional details like vehicle number, transporter details, etc.
+            </p>
+        </div>
+
+        <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.1rem;">From (Supplier) Details</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>GSTIN:</strong></label>
+                <p>{{ company.gstin|default:"Not provided" }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>Trade Name:</strong></label>
+                <p>{{ company.name }}</p>
+            </div>
+        </div>
+        <div class="form-group">
+            <label><strong>Address:</strong></label>
+            <p>{{ company.address|default:"Not provided" }}</p>
+        </div>
+
+        <h3 style="color: var(--text-primary); margin: 2rem 0 1rem; font-size: 1.1rem;">To (Buyer) Details</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>Trade Name:</strong></label>
+                <p>{{ client.name }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>Email:</strong></label>
+                <p>{{ client.email|default:"Not provided" }}</p>
+            </div>
+        </div>
+        <div class="form-group">
+            <label><strong>Address:</strong></label>
+            <p>{{ client.address|default:"Not provided" }}</p>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>Place of Supply:</strong></label>
+                <p>{{ invoice.place_of_supply|default:"Not provided" }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>State Code:</strong></label>
+                <p>{{ invoice.state_code|default:"Not provided" }}</p>
+            </div>
+        </div>
+
+        <h3 style="color: var(--text-primary); margin: 2rem 0 1rem; font-size: 1.1rem;">Invoice Details</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>Invoice Number:</strong></label>
+                <p>{{ invoice.invoice_number }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>Invoice Date:</strong></label>
+                <p>{{ invoice.invoice_date|date:"d/m/Y" }}</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>Total Invoice Value:</strong></label>
+                <p style="font-size: 1.2rem; font-weight: 700; color: var(--success);">₹{{ invoice.total|floatformat:2 }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>Tax Details:</strong></label>
+                <p>CGST: ₹{{ invoice.cgst_amount|floatformat:2 }} ({{ invoice.cgst_rate }}%)<br>
+                   SGST: ₹{{ invoice.sgst_amount|floatformat:2 }} ({{ invoice.sgst_rate }}%)</p>
+            </div>
+        </div>
+
+        <h3 style="color: var(--text-primary); margin: 2rem 0 1rem; font-size: 1.1rem;">Item Details</h3>
+        <div class="table-container">
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Description</th>
+                        <th>SAC/HSN Code</th>
+                        <th>Quantity</th>
+                        <th>Rate</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.description }}</td>
+                        <td>{{ item.sac_code|default:"-" }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>₹{{ item.rate|floatformat:2 }}</td>
+                        <td>₹{{ item.total|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="background: rgba(99, 102, 241, 0.1); border-left: 4px solid var(--primary); padding: 1rem; border-radius: 8px; margin-top: 2rem;">
+            <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">
+                <i class="fas fa-exclamation-triangle" style="color: var(--warning); margin-right: 8px;"></i>
+                Additional Information Required
+            </h4>
+            <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">
+                The following details need to be filled manually on the E-Way Bill Portal:
+            </p>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+                <li>Vehicle Number</li>
+                <li>Transporter Name & ID</li>
+                <li>Transportation Mode (Road/Rail/Air/Ship)</li>
+                <li>Distance (if applicable)</li>
+                <li>PIN codes for From/To addresses</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Quick Actions</h2>
+    </div>
+    <div class="modal-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <a href="{% url 'invoices:eway_bill_data' invoice.pk %}" class="btn-primary" style="text-decoration: none; text-align: center;">
+                <i class="fas fa-file-code"></i> Download JSON File
+            </a>
+            <a href="https://ewaybillgst.gov.in/" target="_blank" class="btn-primary" style="text-decoration: none; text-align: center; background: linear-gradient(135deg, #1e3a5f 0%, #0d1b2a 100%);">
+                <i class="fas fa-external-link-alt"></i> Open Portal
+            </a>
+            <a href="{% url 'invoices:invoice_detail' invoice.pk %}" class="btn-secondary" style="text-decoration: none; text-align: center;">
+                <i class="fas fa-arrow-left"></i> Back to Invoice
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
