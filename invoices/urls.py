@@ -27,6 +27,8 @@ urlpatterns = [
     path('invoices/<int:pk>/delete/', views.delete_invoice, name='delete_invoice'),
     path('invoices/<int:pk>/eway-bill/', views.eway_bill_info, name='eway_bill_info'),
     path('invoices/<int:pk>/eway-bill/download/', views.eway_bill_data, name='eway_bill_data'),
+    path('invoices/<int:pk>/einvoice/', views.einvoice_info, name='einvoice_info'),
+    path('invoices/<int:pk>/einvoice/download/', views.einvoice_data, name='einvoice_data'),
     
     # Payments
     path('invoices/<int:invoice_id>/payment/add/', views.add_payment, name='add_payment'),

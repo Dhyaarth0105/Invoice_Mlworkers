@@ -205,12 +205,13 @@ def get_invoice_item_formset(invoice=None, po_reference=None):
 class ClientForm(forms.ModelForm):
     class Meta:
         model = Client
-        fields = ['name', 'email', 'phone', 'address', 'is_active']
+        fields = ['name', 'email', 'phone', 'address', 'gstin', 'is_active']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'gstin': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '15', 'placeholder': '15-character GSTIN'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 

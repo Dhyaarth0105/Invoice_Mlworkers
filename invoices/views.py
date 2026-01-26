@@ -948,3 +948,189 @@ def eway_bill_info(request, pk):
     }
     
     return render(request, 'invoices/eway_bill_info.html', eway_info)
+
+
+@login_required
+def einvoice_data(request, pk):
+    """Generate e-invoice JSON data for invoice (GST INV-01 format)"""
+    invoice = get_object_or_404(Invoice, pk=pk)
+    company = invoice.company
+    client = invoice.client
+    items = invoice.items.all()
+    
+    if not company:
+        messages.error(request, 'Company not found for this invoice.')
+        return redirect('invoices:invoice_detail', pk=pk)
+    
+    # Prepare e-invoice data according to GST INV-01 schema
+    from datetime import datetime
+    
+    # Extract address components
+    company_addr_lines = company.address.split('\n') if company.address else [""]
+    client_addr_lines = client.address.split('\n') if client.address else [""]
+    
+    # Extract PIN code (if available in address)
+    company_pin = ""
+    client_pin = ""
+    if company.address:
+        import re
+        pin_match = re.search(r'\b\d{6}\b', company.address)
+        if pin_match:
+            company_pin = pin_match.group()
+    if client.address:
+        pin_match = re.search(r'\b\d{6}\b', client.address)
+        if pin_match:
+            client_pin = pin_match.group()
+    
+    einvoice_data = {
+        "Version": "1.1",
+        "TranDtls": {
+            "TaxSch": "GST",
+            "SupTyp": "B2B",  # B2B, B2C, etc.
+            "IgstOnIntra": "N",  # Y if IGST, N if CGST+SGST
+            "RegRev": "N",
+            "EcmGstin": ""
+        },
+        "DocDtls": {
+            "Typ": "INV",  # INV=Invoice, CRN=Credit Note, DBN=Debit Note
+            "No": invoice.invoice_number,
+            "Dt": invoice.invoice_date.strftime("%d/%m/%Y")
+        },
+        "SellerDtls": {
+            "Gstin": company.gstin or "",
+            "LglNm": company.name,
+            "TrdNm": company.name,
+            "Addr1": company_addr_lines[0] if len(company_addr_lines) > 0 else "",
+            "Addr2": '\n'.join(company_addr_lines[1:]) if len(company_addr_lines) > 1 else "",
+            "Loc": company.address.split(',')[-1].strip() if company.address else "",
+            "Pin": company_pin,
+            "Stcd": "",  # State code - extract if available
+            "Ph": company.phone or "",
+            "Em": company.email or ""
+        },
+        "BuyerDtls": {
+            "Gstin": client.gstin or "",
+            "LglNm": client.name,
+            "TrdNm": client.name,
+            "Pos": invoice.state_code or "",  # Place of Supply state code
+            "Addr1": client_addr_lines[0] if len(client_addr_lines) > 0 else "",
+            "Addr2": '\n'.join(client_addr_lines[1:]) if len(client_addr_lines) > 1 else "",
+            "Loc": client.address.split(',')[-1].strip() if client.address else "",
+            "Pin": client_pin,
+            "Stcd": invoice.state_code or "",
+            "Ph": client.phone or "",
+            "Em": client.email or ""
+        },
+        "ItemList": [],
+        "ValDtls": {
+            "AssVal": float(invoice.subtotal - invoice.discount),
+            "CgstVal": float(invoice.cgst_amount),
+            "SgstVal": float(invoice.sgst_amount),
+            "IgstVal": 0.0,
+            "CesVal": 0.0,
+            "StCesVal": 0.0,
+            "Discount": float(invoice.discount),
+            "OthChrg": 0.0,
+            "RndOffAmt": 0.0,
+            "TotInvVal": float(invoice.total),
+            "TotInvValFc": float(invoice.total)
+        },
+        "PayDtls": {
+            "Nm": company.bank_name or "",
+            "AccDet": company.account_number or "",
+            "Mode": "",
+            "FinInsBr": company.ifsc_code or "",
+            "PayTerm": "",
+            "PayInstr": "",
+            "CrTrn": "",
+            "DirDr": "",
+            "CrDay": "",
+            "PaidAmt": 0.0,
+            "PaymtDue": float(invoice.total)
+        },
+        "RefDtls": {
+            "InvRm": "",
+            "DocPerdDtls": {
+                "InvStDt": invoice.invoice_date.strftime("%d/%m/%Y"),
+                "InvEndDt": invoice.due_date.strftime("%d/%m/%Y")
+            },
+            "PrecDocDtls": [],
+            "ContrDtls": []
+        },
+        "AddlDocDtls": [],
+        "ExpDtls": {},
+        "EwbDtls": {}
+    }
+    
+    # Add items
+    for idx, item in enumerate(items, 1):
+        # Calculate tax values for item
+        item_taxable_amt = float(item.total)
+        item_cgst = float(item_taxable_amt * invoice.cgst_rate / 100)
+        item_sgst = float(item_taxable_amt * invoice.sgst_rate / 100)
+        
+        item_data = {
+            "SlNo": str(idx),
+            "PrdDesc": item.description,
+            "IsServc": "Y",  # Y=Service, N=Goods
+            "HsnCd": item.sac_code or "",
+            "Barcde": "",
+            "Qty": float(item.quantity),
+            "FreeQty": 0.0,
+            "Unit": "",  # UOM code
+            "UnitPrice": float(item.rate),
+            "TotAmt": item_taxable_amt,
+            "Discount": 0.0,
+            "PreTaxVal": item_taxable_amt,
+            "AssAmt": item_taxable_amt,
+            "GstRt": float(invoice.tax_rate),
+            "IgstAmt": 0.0,
+            "CgstAmt": item_cgst,
+            "SgstAmt": item_sgst,
+            "CesRt": 0.0,
+            "CesAmt": 0.0,
+            "CesNonAdvlAmt": 0.0,
+            "StateCesRt": 0.0,
+            "StateCesAmt": 0.0,
+            "StateCesNonAdvlAmt": 0.0,
+            "OthChrg": 0.0,
+            "TotItemVal": item_taxable_amt + item_cgst + item_sgst,
+            "OrdLineRef": "",
+            "OrgCntry": "IN",
+            "PrdSlNo": "",
+            "BchDtls": {},
+            "AttribDtls": []
+        }
+        einvoice_data["ItemList"].append(item_data)
+    
+    # Return as downloadable JSON file
+    response = HttpResponse(
+        json.dumps(einvoice_data, indent=2),
+        content_type='application/json'
+    )
+    response['Content-Disposition'] = f'attachment; filename="einvoice_{invoice.invoice_number}.json"'
+    return response
+
+
+@login_required
+def einvoice_info(request, pk):
+    """Show e-invoice information page"""
+    invoice = get_object_or_404(Invoice, pk=pk)
+    company = invoice.company
+    client = invoice.client
+    items = invoice.items.all()
+    
+    if not company:
+        messages.error(request, 'Company not found for this invoice.')
+        return redirect('invoices:invoice_detail', pk=pk)
+    
+    # Prepare e-invoice details for display
+    einvoice_info = {
+        'invoice': invoice,
+        'company': company,
+        'client': client,
+        'items': items,
+        'irp_portal_url': 'https://einvoice6.gst.gov.in/',
+    }
+    
+    return render(request, 'invoices/einvoice_info.html', einvoice_info)

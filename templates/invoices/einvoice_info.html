@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}E-Invoice - {{ invoice.invoice_number }}{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'invoices:invoice_detail' invoice.pk %}" class="btn-primary" style="background: var(--bg-hover);">
+    <i class="fas fa-arrow-left"></i> Back to Invoice
+</a>
+<a href="{% url 'invoices:einvoice_data' invoice.pk %}" class="btn-primary" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+    <i class="fas fa-download"></i> Download JSON
+</a>
+<a href="https://einvoice6.gst.gov.in/" target="_blank" class="btn-primary">
+    <i class="fas fa-external-link-alt"></i> Open IRP Portal
+</a>
+{% endblock %}
+
+{% block authenticated_content %}
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-header">
+        <h2>E-Invoice Information</h2>
+        <p style="color: var(--text-secondary); margin: 0;">Invoice: {{ invoice.invoice_number }}</p>
+    </div>
+    <div class="modal-body">
+        <div style="background: rgba(99, 102, 241, 0.1); border-left: 4px solid #6366f1; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <p style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-info-circle" style="color: #6366f1; margin-right: 8px;"></i>
+                <strong>What is E-Invoice?</strong> E-Invoice is mandatory electronic registration of invoices on the 
+                <a href="https://einvoice6.gst.gov.in/" target="_blank" style="color: #6366f1; text-decoration: underline;">Invoice Registration Portal (IRP)</a>. 
+                After registration, you'll receive an IRN (Invoice Reference Number) and QR code. 
+                <strong>Note:</strong> E-Invoice must be generated before E-Way Bill.
+            </p>
+        </div>
+
+        <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <p style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-exclamation-triangle" style="color: #f59e0b; margin-right: 8px;"></i>
+                <strong>Mandatory for:</strong> Businesses with aggregate annual turnover (AATO) of ₹5 crore and above 
+                (as of August 1, 2023). From April 1, 2025, threshold is ₹10 crore.
+            </p>
+        </div>
+
+        <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.1rem;">From (Supplier) Details</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>GSTIN:</strong></label>
+                <p>{{ company.gstin|default:"⚠️ Not provided - Required for E-Invoice" }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>Legal Name:</strong></label>
+                <p>{{ company.name }}</p>
+            </div>
+        </div>
+        <div class="form-group">
+            <label><strong>Address:</strong></label>
+            <p>{{ company.address|default:"Not provided" }}</p>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>Phone:</strong></label>
+                <p>{{ company.phone|default:"Not provided" }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>Email:</strong></label>
+                <p>{{ company.email|default:"Not provided" }}</p>
+            </div>
+        </div>
+
+        <h3 style="color: var(--text-primary); margin: 2rem 0 1rem; font-size: 1.1rem;">To (Buyer) Details</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>Legal Name:</strong></label>
+                <p>{{ client.name }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>GSTIN:</strong></label>
+                <p>{{ client.gstin|default:"Not provided (Required for B2B)" }}</p>
+            </div>
+        </div>
+        <div class="form-group">
+            <label><strong>Address:</strong></label>
+            <p>{{ client.address|default:"Not provided" }}</p>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>Place of Supply:</strong></label>
+                <p>{{ invoice.place_of_supply|default:"Not provided" }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>State Code:</strong></label>
+                <p>{{ invoice.state_code|default:"Not provided" }}</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>Phone:</strong></label>
+                <p>{{ client.phone|default:"Not provided" }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>Email:</strong></label>
+                <p>{{ client.email|default:"Not provided" }}</p>
+            </div>
+        </div>
+
+        <h3 style="color: var(--text-primary); margin: 2rem 0 1rem; font-size: 1.1rem;">Invoice Details</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>Invoice Number:</strong></label>
+                <p>{{ invoice.invoice_number }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>Invoice Date:</strong></label>
+                <p>{{ invoice.invoice_date|date:"d/m/Y" }}</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>Total Invoice Value:</strong></label>
+                <p style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">₹{{ invoice.total|floatformat:2 }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>Tax Details:</strong></label>
+                <p>CGST: ₹{{ invoice.cgst_amount|floatformat:2 }} ({{ invoice.cgst_rate }}%)<br>
+                   SGST: ₹{{ invoice.sgst_amount|floatformat:2 }} ({{ invoice.sgst_rate }}%)<br>
+                   Total Tax: ₹{{ invoice.tax_amount|floatformat:2 }}</p>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label><strong>Subtotal:</strong></label>
+                <p>₹{{ invoice.subtotal|floatformat:2 }}</p>
+            </div>
+            <div class="form-group">
+                <label><strong>Discount:</strong></label>
+                <p>₹{{ invoice.discount|floatformat:2 }}</p>
+            </div>
+        </div>
+
+        <h3 style="color: var(--text-primary); margin: 2rem 0 1rem; font-size: 1.1rem;">Item Details</h3>
+        <div class="table-container">
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Description</th>
+                        <th>SAC/HSN Code</th>
+                        <th>Quantity</th>
+                        <th>Rate</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.description }}</td>
+                        <td>{{ item.sac_code|default:"⚠️ Required" }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>₹{{ item.rate|floatformat:2 }}</td>
+                        <td>₹{{ item.total|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; padding: 1rem; border-radius: 8px; margin-top: 2rem;">
+            <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">
+                <i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i>
+                Process Flow
+            </h4>
+            <ol style="margin: 0.5rem 0 0 1.5rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8;">
+                <li>Download the JSON file using the button above</li>
+                <li>Login to <a href="https://einvoice6.gst.gov.in/" target="_blank" style="color: #10b981;">IRP Portal</a></li>
+                <li>Upload the JSON file or enter details manually</li>
+                <li>IRP will validate and generate IRN (Invoice Reference Number)</li>
+                <li>Download the digitally signed e-invoice with QR code</li>
+                <li>Use this e-invoice for E-Way Bill generation</li>
+            </ol>
+        </div>
+
+        <div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 8px; margin-top: 1.5rem;">
+            <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">
+                <i class="fas fa-exclamation-circle" style="color: #ef4444; margin-right: 8px;"></i>
+                Important Notes
+            </h4>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8;">
+                <li>E-Invoice must be generated within 30 days from invoice date (from April 1, 2025)</li>
+                <li>All items must have valid HSN/SAC codes</li>
+                <li>GSTIN of both supplier and buyer (for B2B) is mandatory</li>
+                <li>After IRN generation, invoice cannot be cancelled or modified</li>
+                <li>E-Invoice is required before generating E-Way Bill</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Quick Actions</h2>
+    </div>
+    <div class="modal-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <a href="{% url 'invoices:einvoice_data' invoice.pk %}" class="btn-primary" style="text-decoration: none; text-align: center;">
+                <i class="fas fa-file-code"></i> Download JSON File
+            </a>
+            <a href="https://einvoice6.gst.gov.in/" target="_blank" class="btn-primary" style="text-decoration: none; text-align: center; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);">
+                <i class="fas fa-external-link-alt"></i> Open IRP Portal
+            </a>
+            <a href="{% url 'invoices:eway_bill_info' invoice.pk %}" class="btn-primary" style="text-decoration: none; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <i class="fas fa-truck"></i> Generate E-Way Bill
+            </a>
+            <a href="{% url 'invoices:invoice_detail' invoice.pk %}" class="btn-secondary" style="text-decoration: none; text-align: center;">
+                <i class="fas fa-arrow-left"></i> Back to Invoice
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
