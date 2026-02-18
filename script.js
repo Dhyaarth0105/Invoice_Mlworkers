@@ -273,8 +273,210 @@ document.querySelectorAll('.invoice-table tbody tr').forEach(row => {
             if (icon.includes('eye')) alert('Viewing details...');
             else if (icon.includes('download')) alert('Downloading PDF...');
             else if (icon.includes('print')) alert('Preparing print view...');
-            else if (icon.includes('edit')) alert('Opening edit form...');
-            else if (icon.includes('trash')) alert('Confirm delete?');
         });
     });
 });
+
+// ========== UOM MANAGEMENT ==========
+let uomData = [
+    { id: 1, name: 'Units', code: 'UN', description: 'Units', active: true },
+    { id: 2, name: 'Hours', code: 'HR', description: 'Hours', active: true },
+    { id: 3, name: 'Days', code: 'DY', description: 'Days', active: true },
+    { id: 4, name: 'Months', code: 'MO', description: 'Months', active: true },
+    { id: 5, name: 'Licenses', code: 'LIC', description: 'Licenses', active: true },
+    { id: 6, name: 'Instances', code: 'INS', description: 'Instances', active: true },
+    { id: 7, name: 'Kg', code: 'KG', description: 'Kilograms', active: true },
+    { id: 8, name: 'Lot', code: 'LOT', description: 'Lot', active: true },
+];
+let uomEditId = null;
+let uomNextId = 9;
+
+function renderUOMTable() {
+    const tbody = document.getElementById('uomTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = uomData.map(u => `
+        <tr>
+            <td data-label="Name"><strong>${u.name}</strong></td>
+            <td data-label="Code">${u.code || '-'}</td>
+            <td data-label="Description">${u.description || '-'}</td>
+            <td data-label="Status">
+                <span class="status ${u.active ? 'paid' : 'pending'}">${u.active ? 'Active' : 'Inactive'}</span>
+            </td>
+            <td data-label="Actions" class="actions">
+                <button class="action-btn" onclick="editUOM(${u.id})"><i class="fas fa-edit"></i></button>
+                <button class="action-btn" onclick="deleteUOM(${u.id})"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function openUOMModal(id) {
+    uomEditId = id || null;
+    const overlay = document.getElementById('uomModalOverlay');
+    document.getElementById('uomModalTitle').textContent = id ? 'Edit UOM' : 'Add New UOM';
+    if (id) {
+        const u = uomData.find(x => x.id === id);
+        document.getElementById('uomName').value = u.name;
+        document.getElementById('uomCode').value = u.code;
+        document.getElementById('uomDescription').value = u.description;
+        document.getElementById('uomActive').checked = u.active;
+    } else {
+        document.getElementById('uomName').value = '';
+        document.getElementById('uomCode').value = '';
+        document.getElementById('uomDescription').value = '';
+        document.getElementById('uomActive').checked = true;
+    }
+    overlay.classList.add('active');
+}
+
+function closeUOMModal() {
+    document.getElementById('uomModalOverlay').classList.remove('active');
+    uomEditId = null;
+}
+
+function saveUOM() {
+    const name = document.getElementById('uomName').value.trim();
+    if (!name) { alert('Name is required'); return; }
+    const code = document.getElementById('uomCode').value.trim();
+    const desc = document.getElementById('uomDescription').value.trim();
+    const active = document.getElementById('uomActive').checked;
+
+    if (uomEditId) {
+        const u = uomData.find(x => x.id === uomEditId);
+        u.name = name; u.code = code; u.description = desc; u.active = active;
+    } else {
+        uomData.push({ id: uomNextId++, name, code, description: desc, active });
+    }
+    renderUOMTable();
+    closeUOMModal();
+}
+
+function editUOM(id) { openUOMModal(id); }
+
+function deleteUOM(id) {
+    if (!confirm('Are you sure you want to delete this UOM?')) return;
+    uomData = uomData.filter(x => x.id !== id);
+    renderUOMTable();
+}
+
+// ========== COMPANY MANAGEMENT ==========
+let companyData = [
+    { id: 1, name: 'MLWorkers Pvt Ltd', gstin: '24AAACH7409R1ZP', pan: 'AAACH7409R', email: 'info@mlworkers.com', phone: '+91 98765 43210', isDefault: true, active: true, address: 'Gujarat, India', prefix: 'INV', dueDays: 30, bank: 'HDFC Bank', account: '12345678901234', ifsc: 'HDFC0000001', branch: 'Main Branch', cin: '' },
+];
+let companyEditId = null;
+let companyNextId = 2;
+
+function renderCompanyTable() {
+    const tbody = document.getElementById('companyTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = companyData.map(c => `
+        <tr>
+            <td data-label="Company"><strong>${c.name}</strong></td>
+            <td data-label="GSTIN">${c.gstin || '-'}</td>
+            <td data-label="PAN">${c.pan || '-'}</td>
+            <td data-label="Email">${c.email || '-'}</td>
+            <td data-label="Phone">${c.phone || '-'}</td>
+            <td data-label="Default">
+                ${c.isDefault ? '<span class="status paid">Default</span>' : '<span class="text-muted">-</span>'}
+            </td>
+            <td data-label="Status">
+                <span class="status ${c.active ? 'paid' : 'pending'}">${c.active ? 'Active' : 'Inactive'}</span>
+            </td>
+            <td data-label="Actions" class="actions">
+                <button class="action-btn" onclick="editCompany(${c.id})"><i class="fas fa-edit"></i></button>
+                <button class="action-btn" onclick="deleteCompany(${c.id})"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function openCompanyModal(id) {
+    companyEditId = id || null;
+    const overlay = document.getElementById('companyModalOverlay');
+    document.getElementById('companyModalTitle').textContent = id ? 'Edit Company' : 'Add New Company';
+    if (id) {
+        const c = companyData.find(x => x.id === id);
+        document.getElementById('companyName').value = c.name;
+        document.getElementById('companyGstin').value = c.gstin;
+        document.getElementById('companyPan').value = c.pan;
+        document.getElementById('companyCin').value = c.cin || '';
+        document.getElementById('companyEmail').value = c.email;
+        document.getElementById('companyPhone').value = c.phone;
+        document.getElementById('companyAddress').value = c.address;
+        document.getElementById('companyPrefix').value = c.prefix;
+        document.getElementById('companyDueDays').value = c.dueDays;
+        document.getElementById('companyBank').value = c.bank;
+        document.getElementById('companyAccount').value = c.account;
+        document.getElementById('companyIfsc').value = c.ifsc;
+        document.getElementById('companyBranch').value = c.branch;
+        document.getElementById('companyDefault').checked = c.isDefault;
+    } else {
+        ['companyName', 'companyGstin', 'companyPan', 'companyCin', 'companyEmail', 'companyPhone', 'companyAddress', 'companyPrefix', 'companyBank', 'companyAccount', 'companyIfsc', 'companyBranch'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('companyDueDays').value = '30';
+        document.getElementById('companyDefault').checked = false;
+    }
+    overlay.classList.add('active');
+}
+
+function closeCompanyModal() {
+    document.getElementById('companyModalOverlay').classList.remove('active');
+    companyEditId = null;
+}
+
+function saveCompany() {
+    const name = document.getElementById('companyName').value.trim();
+    const address = document.getElementById('companyAddress').value.trim();
+    const prefix = document.getElementById('companyPrefix').value.trim();
+    if (!name) { alert('Company Name is required'); return; }
+    if (!address) { alert('Address is required'); return; }
+    if (!prefix) { alert('Invoice Prefix is required'); return; }
+
+    const obj = {
+        name,
+        gstin: document.getElementById('companyGstin').value.trim(),
+        pan: document.getElementById('companyPan').value.trim(),
+        cin: document.getElementById('companyCin').value.trim(),
+        email: document.getElementById('companyEmail').value.trim(),
+        phone: document.getElementById('companyPhone').value.trim(),
+        address,
+        prefix,
+        dueDays: parseInt(document.getElementById('companyDueDays').value) || 30,
+        bank: document.getElementById('companyBank').value.trim(),
+        account: document.getElementById('companyAccount').value.trim(),
+        ifsc: document.getElementById('companyIfsc').value.trim(),
+        branch: document.getElementById('companyBranch').value.trim(),
+        isDefault: document.getElementById('companyDefault').checked,
+        active: true,
+    };
+
+    if (obj.isDefault) companyData.forEach(c => c.isDefault = false);
+
+    if (companyEditId) {
+        const c = companyData.find(x => x.id === companyEditId);
+        Object.assign(c, obj);
+    } else {
+        obj.id = companyNextId++;
+        companyData.push(obj);
+    }
+    renderCompanyTable();
+    closeCompanyModal();
+}
+
+function editCompany(id) { openCompanyModal(id); }
+
+function deleteCompany(id) {
+    if (!confirm('Are you sure you want to delete this company?')) return;
+    companyData = companyData.filter(x => x.id !== id);
+    renderCompanyTable();
+}
+
+// ========== INIT TABLES ON LOAD ==========
+document.addEventListener('DOMContentLoaded', function () {
+    renderUOMTable();
+    renderCompanyTable();
+});
+// Also run immediately in case DOM is already loaded
+if (document.readyState !== 'loading') {
+    renderUOMTable();
+    renderCompanyTable();
+}

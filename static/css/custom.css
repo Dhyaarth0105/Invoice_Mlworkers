@@ -545,7 +545,7 @@ body {
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    background: rgba(0, 0, 0, 0.15);
+    background: #f8fafc;
 }
 
 .invoice-table tr:hover {

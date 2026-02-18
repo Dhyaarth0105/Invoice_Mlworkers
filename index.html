@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css?v=20260124v5">
+    <link rel="stylesheet" href="static/css/custom.css">
 </head>
 
 <body>
@@ -312,12 +312,66 @@
         <section id="uom-master-view" class="page-view">
             <div class="card">
                 <div class="card-header">
-                    <h2>Unit of Measurement (UOM) Master</h2>
-                    <button class="btn-primary"><i class="fas fa-plus"></i> Add UOM</button>
+                    <h2>Units of Measurement</h2>
+                    <button class="btn-primary" onclick="openUOMModal()"><i class="fas fa-plus"></i> Add New
+                        UOM</button>
                 </div>
-                <p style="padding: 1rem; color: var(--text-secondary);">Manage units like KG, PCS, Hours, etc.</p>
+                <div class="table-container">
+                    <table class="invoice-table" id="uomTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Code</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="uomTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
+
+        <!-- UOM Modal -->
+        <div class="modal-overlay" id="uomModalOverlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 id="uomModalTitle">Add New UOM</h2>
+                    <button class="close-btn" onclick="closeUOMModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Name <span class="text-danger">*</span></label>
+                            <input type="text" id="uomName" placeholder="e.g. Kilograms">
+                        </div>
+                        <div class="form-group">
+                            <label>Code</label>
+                            <input type="text" id="uomCode" placeholder="e.g. KG">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Description</label>
+                            <input type="text" id="uomDescription" placeholder="e.g. Weight in kilograms">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="uomActive" checked style="width: auto;">
+                            Active
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="closeUOMModal()">Cancel</button>
+                    <button class="btn-primary" onclick="saveUOM()"><i class="fas fa-save"></i> Save UOM</button>
+                </div>
+            </div>
+        </div>
 
         <!-- ========== INVOICES VIEW ========== -->
         <section id="invoices-view" class="page-view">
@@ -571,12 +625,118 @@
         <section id="companies-view" class="page-view">
             <div class="card">
                 <div class="card-header">
-                    <h2>Related Companies</h2>
-                    <button class="btn-primary"><i class="fas fa-plus"></i> Add Company</button>
+                    <h2>My Companies</h2>
+                    <button class="btn-primary" onclick="openCompanyModal()"><i class="fas fa-plus"></i> Add
+                        Company</button>
                 </div>
-                <p style="padding: 1rem; color: var(--text-secondary);">Manage company profiles and details.</p>
+                <div class="table-container">
+                    <table class="invoice-table" id="companyTable">
+                        <thead>
+                            <tr>
+                                <th>Company Name</th>
+                                <th>GSTIN</th>
+                                <th>PAN</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Default</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="companyTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
+
+        <!-- Company Modal -->
+        <div class="modal-overlay" id="companyModalOverlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 id="companyModalTitle">Add New Company</h2>
+                    <button class="close-btn" onclick="closeCompanyModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Company Name <span class="text-danger">*</span></label>
+                            <input type="text" id="companyName" placeholder="e.g. My Business Pvt Ltd">
+                        </div>
+                        <div class="form-group">
+                            <label>GSTIN</label>
+                            <input type="text" id="companyGstin" placeholder="e.g. 24AAACH7409R1ZP">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>PAN</label>
+                            <input type="text" id="companyPan" placeholder="e.g. AAACH7409R">
+                        </div>
+                        <div class="form-group">
+                            <label>CIN</label>
+                            <input type="text" id="companyCin" placeholder="e.g. U72200GJ2020PTC000000">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="companyEmail" placeholder="e.g. info@company.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="text" id="companyPhone" placeholder="e.g. +91 99999 99999">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Address <span class="text-danger">*</span></label>
+                        <input type="text" id="companyAddress" placeholder="Full business address">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Invoice Prefix <span class="text-danger">*</span></label>
+                            <input type="text" id="companyPrefix" placeholder="e.g. INV">
+                        </div>
+                        <div class="form-group">
+                            <label>Default Due Days</label>
+                            <input type="number" id="companyDueDays" placeholder="e.g. 30" value="30">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Bank Name</label>
+                            <input type="text" id="companyBank" placeholder="e.g. HDFC Bank">
+                        </div>
+                        <div class="form-group">
+                            <label>Account Number</label>
+                            <input type="text" id="companyAccount" placeholder="e.g. 12345678901234">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>IFSC Code</label>
+                            <input type="text" id="companyIfsc" placeholder="e.g. HDFC0000001">
+                        </div>
+                        <div class="form-group">
+                            <label>Branch</label>
+                            <input type="text" id="companyBranch" placeholder="e.g. Main Branch">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="companyDefault" style="width: auto;">
+                            Set as Default Company
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="closeCompanyModal()">Cancel</button>
+                    <button class="btn-primary" onclick="saveCompany()"><i class="fas fa-save"></i> Save
+                        Company</button>
+                </div>
+            </div>
+        </div>
 
         <!-- ========== PRODUCTS VIEW ========== -->
         <section id="products-view" class="page-view">
