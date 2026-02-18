@@ -16,22 +16,37 @@ from .forms import (
 )
 
 
+def _user_invoices(request):
+    """Invoices belonging to current user's companies (for permission/scoping)."""
+    user_companies = Company.objects.filter(user=request.user, is_active=True)
+    return Invoice.objects.filter(company__in=user_companies)
+
+
+def _user_companies(request):
+    """Companies belonging to current user."""
+    return Company.objects.filter(user=request.user, is_active=True)
+
+
 @login_required
 def dashboard(request):
-    """Dashboard view with statistics"""
-    # Get statistics
-    total_invoices = Invoice.objects.count()
-    paid_invoices = Invoice.objects.filter(status='PAID')
-    pending_invoices = Invoice.objects.filter(status='PENDING')
-    overdue_invoices = Invoice.objects.filter(status='OVERDUE')
-    draft_invoices = Invoice.objects.filter(status='DRAFT')
+    """Dashboard view with statistics (scoped to user's companies)."""
+    user_companies = _user_companies(request)
+    base_invoices = _user_invoices(request)
+    
+    total_invoices = base_invoices.count()
+    paid_invoices = base_invoices.filter(status='PAID')
+    pending_invoices = base_invoices.filter(status='PENDING')
+    overdue_invoices = base_invoices.filter(status='OVERDUE')
+    draft_invoices = base_invoices.filter(status='DRAFT')
     
     paid_amount = paid_invoices.aggregate(total=Sum('total'))['total'] or Decimal('0')
     pending_amount = pending_invoices.aggregate(total=Sum('total'))['total'] or Decimal('0')
     overdue_amount = overdue_invoices.aggregate(total=Sum('total'))['total'] or Decimal('0')
-    active_clients = Client.objects.filter(is_active=True).count()
+    # Clients that have invoices under user's companies
+    active_clients = Client.objects.filter(
+        invoices__company__in=user_companies, is_active=True
+    ).distinct().count()
     
-    # Status breakdown for pie chart
     status_breakdown = {
         'PAID': paid_invoices.count(),
         'PENDING': pending_invoices.count(),
@@ -39,13 +54,12 @@ def dashboard(request):
         'DRAFT': draft_invoices.count(),
     }
     
-    # Monthly revenue for last 6 months
     from datetime import datetime, timedelta
     monthly_revenue = []
     for i in range(5, -1, -1):
         month_start = (timezone.now() - timedelta(days=30*i)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
-        revenue = Invoice.objects.filter(
+        revenue = base_invoices.filter(
             status='PAID',
             invoice_date__gte=month_start,
             invoice_date__lte=month_end
@@ -55,11 +69,10 @@ def dashboard(request):
             'revenue': float(revenue)
         })
     
-    # Recent invoices
-    recent_invoices = Invoice.objects.select_related('client').order_by('-created_at')[:5]
-    
-    # Top clients
-    top_clients = Client.objects.annotate(
+    recent_invoices = base_invoices.select_related('client').order_by('-created_at')[:5]
+    top_clients = Client.objects.filter(
+        invoices__company__in=user_companies
+    ).annotate(
         invoice_count=Count('invoices'),
         total_revenue=Sum('invoices__total')
     ).filter(is_active=True).order_by('-total_revenue')[:3]
@@ -182,8 +195,12 @@ def create_po(request):
 
 @login_required
 def edit_po(request, pk):
-    """Edit Purchase Order"""
-    po = get_object_or_404(PurchaseOrder, pk=pk)
+    """Edit Purchase Order (restricted to user's companies)."""
+    user_companies = _user_companies(request)
+    po = PurchaseOrder.objects.filter(pk=pk, company__in=user_companies).first()
+    if not po:
+        from django.http import Http404
+        raise Http404("Purchase order not found")
     if request.method == 'POST':
         form = PurchaseOrderForm(request.POST, instance=po, user=request.user)
         formset = POLineItemFormSet(request.POST, instance=po)
@@ -206,8 +223,12 @@ def edit_po(request, pk):
 
 @login_required
 def delete_po(request, pk):
-    """Delete Purchase Order"""
-    po = get_object_or_404(PurchaseOrder, pk=pk)
+    """Delete Purchase Order (restricted to user's companies)."""
+    user_companies = _user_companies(request)
+    po = PurchaseOrder.objects.filter(pk=pk, company__in=user_companies).first()
+    if not po:
+        from django.http import Http404
+        raise Http404("Purchase order not found")
     if request.method == 'POST':
         po.delete()
         messages.success(request, 'Purchase Order deleted successfully!')
@@ -359,8 +380,11 @@ def create_invoice(request):
 
 @login_required
 def invoice_detail(request, pk):
-    """View invoice details"""
-    invoice = get_object_or_404(Invoice, pk=pk)
+    """View invoice details (restricted to user's companies)."""
+    invoice = _user_invoices(request).filter(pk=pk).first()
+    if not invoice:
+        from django.http import Http404
+        raise Http404("Invoice not found")
     items = invoice.items.all()
     company = invoice.company
     payments = invoice.payments.all().order_by('-payment_date', '-created_at')
@@ -385,10 +409,13 @@ def invoice_detail(request, pk):
 
 @login_required
 def invoice_pdf(request, pk):
-    """Generate PDF for invoice"""
+    """Generate PDF for invoice (restricted to user's companies)."""
     from .pdf_utils import generate_invoice_pdf
     
-    invoice = get_object_or_404(Invoice, pk=pk)
+    invoice = _user_invoices(request).filter(pk=pk).first()
+    if not invoice:
+        from django.http import Http404
+        raise Http404("Invoice not found")
     items = invoice.items.all()
     company = invoice.company
     client = invoice.client
@@ -402,8 +429,11 @@ def invoice_pdf(request, pk):
 
 @login_required
 def edit_invoice(request, pk):
-    """Edit invoice"""
-    invoice = get_object_or_404(Invoice, pk=pk)
+    """Edit invoice (restricted to user's companies)."""
+    invoice = _user_invoices(request).filter(pk=pk).first()
+    if not invoice:
+        from django.http import Http404
+        raise Http404("Invoice not found")
     if request.method == 'POST':
         form = InvoiceForm(request.POST, request.FILES, instance=invoice, user=request.user)
         InvoiceItemFormSetWithContext = get_invoice_item_formset(invoice=invoice)
@@ -458,8 +488,11 @@ def edit_invoice(request, pk):
 
 @login_required
 def delete_invoice(request, pk):
-    """Delete invoice"""
-    invoice = get_object_or_404(Invoice, pk=pk)
+    """Delete invoice (restricted to user's companies)."""
+    invoice = _user_invoices(request).filter(pk=pk).first()
+    if not invoice:
+        from django.http import Http404
+        raise Http404("Invoice not found")
     if request.method == 'POST':
         invoice.delete()
         messages.success(request, 'Invoice deleted successfully!')
@@ -566,15 +599,16 @@ def delete_product(request, pk):
 
 @login_required
 def reports(request):
-    """Reports and analytics"""
-    # Revenue statistics
-    total_revenue = Invoice.objects.filter(status='PAID').aggregate(total=Sum('total'))['total'] or Decimal('0')
-    paid_count = Invoice.objects.filter(status='PAID').count()
-    pending_count = Invoice.objects.filter(status='PENDING').count()
-    overdue_count = Invoice.objects.filter(status='OVERDUE').count()
-    draft_count = Invoice.objects.filter(status='DRAFT').count()
+    """Reports and analytics (scoped to user's companies)."""
+    base_invoices = _user_invoices(request)
+    user_companies = _user_companies(request)
     
-    # Status breakdown for pie chart
+    total_revenue = base_invoices.filter(status='PAID').aggregate(total=Sum('total'))['total'] or Decimal('0')
+    paid_count = base_invoices.filter(status='PAID').count()
+    pending_count = base_invoices.filter(status='PENDING').count()
+    overdue_count = base_invoices.filter(status='OVERDUE').count()
+    draft_count = base_invoices.filter(status='DRAFT').count()
+    
     status_breakdown = {
         'PAID': paid_count,
         'PENDING': pending_count,
@@ -582,12 +616,13 @@ def reports(request):
         'DRAFT': draft_count,
     }
     
-    # Monthly revenue (last 6 months)
+    # Monthly revenue (last 6 months) - PAID invoices only
     monthly_revenue = []
     for i in range(5, -1, -1):
         month_start = date.today().replace(day=1) - timedelta(days=30*i)
         month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
-        revenue = Invoice.objects.filter(
+        revenue = base_invoices.filter(
+            status='PAID',
             invoice_date__gte=month_start,
             invoice_date__lte=month_end
         ).aggregate(total=Sum('total'))['total'] or Decimal('0')
@@ -596,8 +631,9 @@ def reports(request):
             'revenue': float(revenue)
         })
     
-    # Top clients revenue
-    top_clients = Client.objects.annotate(
+    top_clients = Client.objects.filter(
+        invoices__company__in=user_companies
+    ).annotate(
         total_revenue=Sum('invoices__total')
     ).filter(total_revenue__gt=0).order_by('-total_revenue')[:5]
     
@@ -700,9 +736,12 @@ def settings(request):
 
 @login_required
 def api_po_line_items(request, po_id):
-    """API endpoint to get PO line items for a PO"""
+    """API endpoint to get PO line items (restricted to user's companies)."""
     try:
-        po = get_object_or_404(PurchaseOrder, pk=po_id)
+        user_companies = _user_companies(request)
+        po = PurchaseOrder.objects.filter(pk=po_id, company__in=user_companies).first()
+        if not po:
+            return JsonResponse({'error': 'Purchase order not found'}, status=404)
         line_items = []
         for item in po.subline_items.all():
             line_items.append({
@@ -750,8 +789,11 @@ def api_company_next_invoice_number(request, company_id):
 
 @login_required
 def add_payment(request, invoice_id):
-    """Add payment to invoice"""
-    invoice = get_object_or_404(Invoice, pk=invoice_id)
+    """Add payment to invoice (restricted to user's companies)."""
+    invoice = _user_invoices(request).filter(pk=invoice_id).first()
+    if not invoice:
+        from django.http import Http404
+        raise Http404("Invoice not found")
     
     if request.method == 'POST':
         form = PaymentForm(request.POST, invoice=invoice)
@@ -778,9 +820,12 @@ def add_payment(request, invoice_id):
 
 @login_required
 def edit_payment(request, pk):
-    """Edit payment"""
+    """Edit payment (restricted to user's invoices)."""
     payment = get_object_or_404(Payment, pk=pk)
     invoice = payment.invoice
+    if not _user_invoices(request).filter(pk=invoice.pk).exists():
+        from django.http import Http404
+        raise Http404("Payment not found")
     
     if request.method == 'POST':
         form = PaymentForm(request.POST, instance=payment, invoice=invoice)
@@ -805,9 +850,12 @@ def edit_payment(request, pk):
 
 @login_required
 def delete_payment(request, pk):
-    """Delete payment"""
+    """Delete payment (restricted to user's invoices)."""
     payment = get_object_or_404(Payment, pk=pk)
     invoice = payment.invoice
+    if not _user_invoices(request).filter(pk=invoice.pk).exists():
+        from django.http import Http404
+        raise Http404("Payment not found")
     
     if request.method == 'POST':
         payment.delete()
@@ -838,8 +886,11 @@ def api_po_line_item_detail(request, item_id):
 
 @login_required
 def eway_bill_data(request, pk):
-    """Generate e-way bill JSON data for invoice"""
-    invoice = get_object_or_404(Invoice, pk=pk)
+    """Generate e-way bill JSON data (restricted to user's companies)."""
+    invoice = _user_invoices(request).filter(pk=pk).first()
+    if not invoice:
+        from django.http import Http404
+        raise Http404("Invoice not found")
     company = invoice.company
     client = invoice.client
     items = invoice.items.all()
@@ -928,8 +979,11 @@ def eway_bill_data(request, pk):
 
 @login_required
 def eway_bill_info(request, pk):
-    """Show e-way bill information page"""
-    invoice = get_object_or_404(Invoice, pk=pk)
+    """Show e-way bill information (restricted to user's companies)."""
+    invoice = _user_invoices(request).filter(pk=pk).first()
+    if not invoice:
+        from django.http import Http404
+        raise Http404("Invoice not found")
     company = invoice.company
     client = invoice.client
     items = invoice.items.all()
@@ -952,8 +1006,11 @@ def eway_bill_info(request, pk):
 
 @login_required
 def einvoice_data(request, pk):
-    """Generate e-invoice JSON data for invoice (GST INV-01 format)"""
-    invoice = get_object_or_404(Invoice, pk=pk)
+    """Generate e-invoice JSON data (restricted to user's companies)."""
+    invoice = _user_invoices(request).filter(pk=pk).first()
+    if not invoice:
+        from django.http import Http404
+        raise Http404("Invoice not found")
     company = invoice.company
     client = invoice.client
     items = invoice.items.all()
@@ -1114,8 +1171,11 @@ def einvoice_data(request, pk):
 
 @login_required
 def einvoice_info(request, pk):
-    """Show e-invoice information page"""
-    invoice = get_object_or_404(Invoice, pk=pk)
+    """Show e-invoice information (restricted to user's companies)."""
+    invoice = _user_invoices(request).filter(pk=pk).first()
+    if not invoice:
+        from django.http import Http404
+        raise Http404("Invoice not found")
     company = invoice.company
     client = invoice.client
     items = invoice.items.all()

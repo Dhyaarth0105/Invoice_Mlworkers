@@ -174,8 +174,10 @@ function switchView(viewName) {
     const titles = {
         'dashboard': { title: 'Dashboard', subtitle: "Welcome back! Here's your business overview." },
         'manage-po': { title: 'Manage Purchase Orders', subtitle: 'Add and manage your Purchase Orders. These are used when creating invoices.' },
+        'uom-master': { title: 'UOM Master', subtitle: 'Manage Units of Measurement (KG, PCS, etc.)' },
         'invoices': { title: 'Invoices', subtitle: 'View, create and manage all your invoices.' },
         'clients': { title: 'Clients', subtitle: 'Manage your client database and contact information.' },
+        'companies': { title: 'Companies', subtitle: 'Manage related companies and organizations.' },
         'products': { title: 'Products & Services', subtitle: 'Manage your product catalog and pricing.' },
         'reports': { title: 'Reports & Analytics', subtitle: 'Business insights and financial reports.' },
         'settings': { title: 'Settings', subtitle: 'Configure your company and invoice preferences.' }

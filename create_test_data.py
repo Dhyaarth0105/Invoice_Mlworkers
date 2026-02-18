@@ -45,6 +45,7 @@ client, created = Client.objects.get_or_create(
     defaults={
         'email': 'accounts@ltmhi.com',
         'phone': '+91 261 6693000',
+        'gstin': '24AABCL2635C1Z3',  # GSTIN from address
         'address': '''(Formerly known as L&T- MHPS Boilers Private Limited)
 Gate no: 6,
 Hazira Manufacturing Complex (West),

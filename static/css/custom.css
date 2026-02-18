@@ -11,20 +11,20 @@
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
-    --bg-dark: #f8fafc;
-    --bg-card: #ffffff;
-    --bg-hover: #f1f5f9;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --text-muted: #94a3b8;
-    --border: #e2e8f0;
-    --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+    --bg-dark: #0f172a;
+    --bg-card: #1e293b;
+    --bg-hover: #334155;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border: #334155;
+    --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     --gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
 }
 
 body {
     font-family: 'Inter', sans-serif;
-    background: #f8fafc;
+    background: var(--bg-dark);
     color: var(--text-primary);
     display: flex;
     min-height: 100vh;
@@ -84,7 +84,7 @@ body {
 /* Sidebar */
 .sidebar {
     width: 280px;
-    background: white;
+    background: var(--bg-card);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
@@ -92,7 +92,7 @@ body {
     height: 100vh;
     z-index: 100;
     transition: transform 0.3s ease;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
 }
 
 .logo {
@@ -142,7 +142,7 @@ body {
 }
 
 .nav-item:hover {
-    background: #f1f5f9;
+    background: var(--bg-hover);
     color: var(--text-primary);
 }
 
@@ -205,7 +205,7 @@ body {
     flex: 1;
     margin-left: 280px;
     padding: 2rem;
-    background: #f8fafc;
+    background: var(--bg-dark);
     min-height: 100vh;
     width: calc(100% - 280px);
     overflow-x: hidden;
@@ -243,7 +243,7 @@ body {
 }
 
 .search-box input {
-    background: white;
+    background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 12px 16px 12px 45px;
@@ -270,7 +270,7 @@ body {
 .btn-icon {
     width: 45px;
     height: 45px;
-    background: white;
+    background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 12px;
     color: var(--text-secondary);
@@ -483,11 +483,11 @@ body {
 }
 
 .card {
-    background: white;
+    background: var(--bg-card);
     border-radius: 20px;
     padding: 1.5rem;
     border: 1px solid var(--border);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow);
 }
 
 .card-header {
@@ -910,7 +910,8 @@ body {
 .invoice-items .item-row {
     grid-template-columns: 140px 1.8fr 85px 80px 90px 90px 45px;
     gap: 8px;
-    min-width: 0; /* Prevent overflow */
+    min-width: 0;
+    /* Prevent overflow */
     overflow: hidden;
     width: 100%;
     box-sizing: border-box;
@@ -926,16 +927,18 @@ body {
     color: var(--text-secondary);
     border-bottom: 1px solid var(--border);
     margin-bottom: 8px;
-    min-width: 0; /* Prevent overflow */
+    min-width: 0;
+    /* Prevent overflow */
     overflow: hidden;
     width: 100%;
     box-sizing: border-box;
 }
 
-.invoice-items .item-row > div {
+.invoice-items .item-row>div {
     display: flex;
     flex-direction: column;
-    min-width: 0; /* Prevent overflow */
+    min-width: 0;
+    /* Prevent overflow */
     overflow: hidden;
 }
 
@@ -965,7 +968,8 @@ body {
     color: var(--text-primary);
     font-size: 16px;
     width: 100%;
-    min-width: 0; /* Prevent overflow */
+    min-width: 0;
+    /* Prevent overflow */
     box-sizing: border-box;
 }
 
@@ -1021,10 +1025,11 @@ body {
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
-.po-form .item-row > div {
+.po-form .item-row>div {
     display: flex;
     flex-direction: column;
-    min-width: 0; /* Prevent overflow */
+    min-width: 0;
+    /* Prevent overflow */
     overflow: hidden;
 }
 
@@ -1224,11 +1229,13 @@ body {
 
 /* ===== MOBILE RESPONSIVE ===== */
 @media (max-width: 768px) {
+
     /* Invoice Items - Mobile Layout */
     .invoice-items .item-row-header {
-        display: none !important; /* Hide header on mobile */
+        display: none !important;
+        /* Hide header on mobile */
     }
-    
+
     .invoice-items .item-row {
         display: flex !important;
         flex-direction: column !important;
@@ -1239,12 +1246,12 @@ body {
         margin-bottom: 12px !important;
         grid-template-columns: none !important;
     }
-    
-    .invoice-items .item-row > div {
+
+    .invoice-items .item-row>div {
         width: 100% !important;
     }
-    
-    .invoice-items .item-row > div[data-label]::before {
+
+    .invoice-items .item-row>div[data-label]::before {
         content: attr(data-label) ": ";
         display: block;
         margin-bottom: 4px;
@@ -1252,7 +1259,7 @@ body {
         color: var(--text-secondary);
         font-weight: 500;
     }
-    
+
     .invoice-items .item-row .item-total {
         text-align: left !important;
         padding: 8px !important;
@@ -1262,7 +1269,7 @@ body {
         grid-column: auto !important;
         align-self: stretch !important;
     }
-    
+
     .invoice-items .item-row .item-total[data-label]::before {
         content: attr(data-label) ": ";
         display: block;
@@ -1271,18 +1278,18 @@ body {
         color: var(--text-secondary);
         font-weight: 500;
     }
-    
+
     .invoice-items .item-row .remove-item {
         width: 100% !important;
         margin-top: 8px !important;
         grid-column: auto !important;
     }
-    
+
     /* PO Form - Mobile Layout */
     .po-form .item-row-header {
         display: none !important;
     }
-    
+
     .po-form .item-row {
         display: flex !important;
         flex-direction: column !important;
@@ -1293,12 +1300,12 @@ body {
         margin-bottom: 12px !important;
         grid-template-columns: none !important;
     }
-    
-    .po-form .item-row > div {
+
+    .po-form .item-row>div {
         width: 100% !important;
     }
-    
-    .po-form .item-row > div[data-label]::before {
+
+    .po-form .item-row>div[data-label]::before {
         content: attr(data-label) ": ";
         display: block;
         margin-bottom: 4px;
@@ -1306,7 +1313,7 @@ body {
         color: var(--text-secondary);
         font-weight: 500;
     }
-    
+
     .po-form .item-row .item-total {
         text-align: left !important;
         padding: 8px !important;
@@ -1314,7 +1321,7 @@ body {
         border-radius: 6px !important;
         font-size: 1.1rem !important;
     }
-    
+
     .po-form .item-row .item-total[data-label]::before {
         content: attr(data-label) ": ";
         display: block;
@@ -1323,22 +1330,22 @@ body {
         color: var(--text-secondary);
         font-weight: 500;
     }
-    
+
     .po-form .item-row .remove-item {
         width: 100% !important;
         margin-top: 8px !important;
     }
-    
+
     /* Form rows - stack on mobile */
     .form-row {
         flex-direction: column !important;
     }
-    
+
     .form-group {
         width: 100% !important;
         margin-bottom: 1rem;
     }
-    
+
     /* Summary cards - stack on mobile */
     div[style*="grid-template-columns"] {
         grid-template-columns: 1fr !important;
@@ -1366,7 +1373,7 @@ body {
         z-index: 999 !important;
         -webkit-tap-highlight-color: transparent;
     }
-    
+
     .sidebar {
         z-index: 1000 !important;
     }
@@ -1464,7 +1471,7 @@ body {
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
     }
-    
+
     /* Invoice/Client list mobile - label above value, full width for text */
     .invoice-table td:before {
         position: static !important;
@@ -1474,28 +1481,28 @@ body {
         top: auto !important;
         left: auto !important;
     }
-    
+
     .invoice-table td {
         padding-top: 0.5rem !important;
         padding-bottom: 0.75rem !important;
     }
-    
+
     .invoice-table .client-cell {
         flex-wrap: wrap !important;
         justify-content: flex-start !important;
     }
-    
+
     .invoice-table .client-cell .client-avatar {
         flex-shrink: 0 !important;
     }
-    
-    .invoice-table .client-cell + *,
+
+    .invoice-table .client-cell+*,
     .invoice-table td .invoice-id,
     .invoice-table td .amount {
         display: block !important;
         margin-top: 0.25rem !important;
     }
-    
+
     .invoice-table td.actions {
         display: flex !important;
         flex-wrap: wrap !important;
@@ -1504,29 +1511,29 @@ body {
         border-top: 1px solid #e2e8f0 !important;
         margin-top: 0.25rem !important;
     }
-    
+
     .invoice-table td.actions:before {
         width: 100% !important;
         margin-bottom: 0.5rem !important;
     }
-    
+
     .invoice-table td[data-label="Documents"] {
         padding-top: 0.5rem !important;
     }
-    
-    .invoice-table td[data-label="Documents"] > div {
+
+    .invoice-table td[data-label="Documents"]>div {
         justify-content: flex-start !important;
     }
-    
+
     /* PO Table Mobile - Complete rewrite for proper mobile layout */
     #poTable thead {
         display: none !important;
     }
-    
+
     #poTable tbody {
         display: block !important;
     }
-    
+
     #poTable tr {
         display: block !important;
         margin-bottom: 1.5rem !important;
@@ -1537,7 +1544,7 @@ body {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
         position: relative !important;
     }
-    
+
     #poTable td {
         display: block !important;
         width: 100% !important;
@@ -1549,17 +1556,17 @@ body {
         padding-left: 0 !important;
         padding-right: 0 !important;
     }
-    
+
     #poTable td:last-child {
         border-bottom: none !important;
     }
-    
+
     #poTable td[rowspan] {
         display: block !important;
         padding: 0.75rem 0 !important;
         border-bottom: 1px solid #e2e8f0 !important;
     }
-    
+
     /* Label styling - show above value */
     #poTable td:before {
         content: attr(data-label) !important;
@@ -1578,7 +1585,7 @@ body {
         left: auto !important;
         line-height: 1.4 !important;
     }
-    
+
     /* Value styling - ensure no overlap */
     #poTable td {
         font-size: 0.95rem !important;
@@ -1588,25 +1595,25 @@ body {
         min-height: auto !important;
         line-height: 1.5 !important;
     }
-    
+
     /* Ensure content doesn't overlap label */
-    #poTable td > * {
+    #poTable td>* {
         display: block !important;
         margin-top: 0.25rem !important;
     }
-    
+
     /* Special handling for badge/company */
     #poTable td .badge {
         display: inline-block !important;
         margin-top: 0.25rem !important;
     }
-    
+
     /* Actions section - no label overlap */
     #poTable td.actions:before {
         content: "Actions" !important;
         margin-bottom: 0.75rem !important;
     }
-    
+
     #poTable td.actions {
         display: flex !important;
         flex-direction: column !important;
@@ -1615,12 +1622,12 @@ body {
         border-top: 2px solid #e2e8f0 !important;
         margin-top: 0.5rem !important;
     }
-    
+
     #poTable td.actions .action-btn {
         align-self: flex-end !important;
         margin: 0 !important;
     }
-    
+
     /* Hide rowspan on mobile - show all fields */
     #poTable td[rowspan] {
         display: block !important;
@@ -1661,13 +1668,13 @@ body {
         display: flex !important;
         flex-wrap: wrap !important;
     }
-    
+
     .action-btn {
         width: 36px !important;
         height: 36px !important;
         min-width: 36px !important;
     }
-    
+
     .action-btn i {
         font-size: 13px !important;
     }
@@ -1757,35 +1764,36 @@ body {
 
 /* ===== EXTRA SMALL MOBILE ===== */
 @media (max-width: 450px) {
+
     /* Invoice items - even more compact */
     .invoice-items .item-row {
         padding: 10px !important;
         gap: 10px !important;
     }
-    
+
     .invoice-items .item-row input,
     .invoice-items .item-row select {
         font-size: 14px !important;
         padding: 10px !important;
     }
-    
+
     /* PO form - compact */
     .po-form .item-row {
         padding: 10px !important;
         gap: 10px !important;
     }
-    
+
     .po-form .item-row input,
     .po-form .item-row select {
         font-size: 14px !important;
         padding: 10px !important;
     }
-    
+
     /* Summary cards - smaller text */
     .card h3 {
         font-size: 1.25rem !important;
     }
-    
+
     .stats-grid {
         grid-template-columns: 1fr !important;
     }
@@ -1799,22 +1807,22 @@ body {
     .stat-icon {
         margin: 0 !important;
     }
-    
+
     /* Action buttons - smaller on very small screens */
     .action-btn {
         width: 34px !important;
         height: 34px !important;
         min-width: 34px !important;
     }
-    
+
     .action-btn i {
         font-size: 12px !important;
     }
-    
+
     .actions {
         gap: 6px !important;
     }
-    
+
     /* Table - hide less important columns on very small screens */
     .invoice-table th:nth-child(4),
     .invoice-table td:nth-child(4),
@@ -1933,7 +1941,8 @@ body {
 }
 
 /* Ensure links and buttons are always clickable */
-a, button {
+a,
+button {
     cursor: pointer;
     -webkit-tap-highlight-color: rgba(99, 102, 241, 0.2);
 }
