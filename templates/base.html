@@ -43,8 +43,11 @@
             <a href="{% url 'invoices:uom_list' %}" class="nav-item {% if request.resolver_match.url_name == 'uom_list' or request.resolver_match.url_name == 'create_uom' or request.resolver_match.url_name == 'edit_uom' %}active{% endif %}">
                 <i class="fas fa-ruler"></i><span>UOM Master</span>
             </a>
-            <a href="{% url 'invoices:invoice_list' %}" class="nav-item {% if request.resolver_match.url_name == 'invoice_list' %}active{% endif %}">
+            <a href="{% url 'invoices:invoice_list' %}" class="nav-item {% if request.resolver_match.url_name == 'invoice_list' or request.resolver_match.url_name == 'create_invoice' or request.resolver_match.url_name == 'edit_invoice' %}active{% endif %}">
                 <i class="fas fa-file-invoice"></i><span>Invoices</span>
+            </a>
+            <a href="{% url 'invoices:credit_note_list' %}" class="nav-item {% if request.resolver_match.url_name == 'credit_note_list' or request.resolver_match.url_name == 'create_credit_note' or request.resolver_match.url_name == 'edit_credit_note' %}active{% endif %}">
+                <i class="fas fa-undo"></i><span>Credit Notes</span>
             </a>
             <a href="{% url 'invoices:client_list' %}" class="nav-item {% if request.resolver_match.url_name == 'client_list' %}active{% endif %}">
                 <i class="fas fa-users"></i><span>Clients</span>
