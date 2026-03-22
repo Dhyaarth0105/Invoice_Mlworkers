@@ -49,9 +49,11 @@
             <div class="form-group" style="border: 2px solid var(--success); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0;">
                 <label style="font-weight: 600; margin-bottom: 1rem; display: block;">Subline Items <span class="text-danger">*</span></label>
                 <div class="invoice-items po-form" id="sublineItemsContainer">
-                    <div class="item-row-header">
+                    <div class="item-row-header" style="grid-template-columns: 1fr 2fr 1.5fr 1fr 0.8fr 0.8fr 1fr 1.2fr auto;">
                         <div>Subline #</div>
                         <div>Subline Description</div>
+                        <div>Material Code</div>
+                        <div>HSN/SAC</div>
                         <div>Quantity</div>
                         <div>Price</div>
                         <div>UOM</div>
@@ -59,10 +61,12 @@
                         <div>Action</div>
                     </div>
                     {% for form in formset %}
-                    <div class="item-row" data-form-index="{{ forloop.counter0 }}">
+                    <div class="item-row" data-form-index="{{ forloop.counter0 }}" style="grid-template-columns: 1fr 2fr 1.5fr 1fr 0.8fr 0.8fr 1fr 1.2fr auto;">
                         {{ form.id }}
                         <div data-label="Subline #">{{ form.subline_number }}</div>
                         <div data-label="Subline Description">{{ form.subline_description }}</div>
+                        <div data-label="Material Code">{{ form.material_code }}</div>
+                        <div data-label="HSN/SAC">{{ form.hsn_sac_code }}</div>
                         <div data-label="Quantity">{{ form.quantity }}</div>
                         <div data-label="Price">{{ form.price }}</div>
                         <div data-label="UOM">{{ form.uom }}</div>
@@ -132,6 +136,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const idField = tempDiv.querySelector('[name*="id"]');
         const sublineNumber = tempDiv.querySelector('[name*="subline_number"]');
         const sublineDesc = tempDiv.querySelector('[name*="subline_description"]');
+        const materialCode = tempDiv.querySelector('[name*="material_code"]');
+        const hsnSacCode = tempDiv.querySelector('[name*="hsn_sac_code"]');
         const quantity = tempDiv.querySelector('[name*="quantity"]');
         const price = tempDiv.querySelector('[name*="price"]');
         const uom = tempDiv.querySelector('[name*="uom"]');
@@ -141,10 +147,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (quantity) quantity.classList.add('qty');
         if (price) price.classList.add('price');
         
+        newRow.style = "grid-template-columns: 1fr 2fr 1.5fr 1fr 0.8fr 0.8fr 1fr 1.2fr auto;";
         newRow.innerHTML = `
             ${idField ? idField.outerHTML : ''}
             <div>${sublineNumber ? sublineNumber.outerHTML : ''}</div>
             <div>${sublineDesc ? sublineDesc.outerHTML : ''}</div>
+            <div>${materialCode ? materialCode.outerHTML : ''}</div>
+            <div>${hsnSacCode ? hsnSacCode.outerHTML : ''}</div>
             <div>${quantity ? quantity.outerHTML : ''}</div>
             <div>${price ? price.outerHTML : ''}</div>
             <div>${uom ? uom.outerHTML : ''}</div>

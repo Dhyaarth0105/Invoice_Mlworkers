@@ -5,6 +5,35 @@
 {% block page_subtitle %}Business insights and financial reports.{% endblock %}
 
 {% block authenticated_content %}
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header" style="flex-wrap: wrap; gap: 1rem;">
+        <h2 style="margin: 0;">Filters</h2>
+        <form method="get" class="search-form" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <div class="form-group" style="margin: 0; min-width: 200px;">
+                <label for="company_filter" style="margin-bottom: 0.5rem; display: block; font-size: 0.9rem; color: var(--text-muted);">Company</label>
+                <select name="company" id="company_filter" class="form-control" onchange="this.form.submit()">
+                    <option value="">All Companies</option>
+                    {% for company in companies %}
+                        <option value="{{ company.id }}" {% if selected_company_id and selected_company_id == company.id %}selected{% endif %}>
+                            {{ company.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group" style="margin: 0; min-width: 200px;">
+                <label for="fy_filter" style="margin-bottom: 0.5rem; display: block; font-size: 0.9rem; color: var(--text-muted);">Financial Year</label>
+                <select name="fy" id="fy_filter" class="form-control" onchange="this.form.submit()">
+                    <option value="">All Time</option>
+                    {% for fy in fy_options %}
+                        <option value="{{ fy }}" {% if selected_fy == fy %}selected{% endif %}>
+                            {{ fy }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-icon blue"><i class="fas fa-rupee-sign"></i></div>

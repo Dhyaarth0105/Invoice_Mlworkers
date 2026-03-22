@@ -40,6 +40,7 @@
                     <th>Main Line Description</th>
                     <th>Subline #</th>
                     <th>Subline Description</th>
+                    <th>HSN/SAC Code</th>
                     <th>Qty</th>
                     <th>Price</th>
                     <th>Total</th>
@@ -65,6 +66,7 @@
                         {% endif %}
                         <td data-label="Subline #">{{ item.subline_number }}</td>
                         <td data-label="Subline Desc">{{ item.subline_description }}</td>
+                        <td data-label="HSN/SAC">{{ item.hsn_sac_code|default:"-" }}</td>
                         <td data-label="Qty">{{ item.quantity }}</td>
                         <td data-label="Price" class="amount">₹{{ item.price|floatformat:2 }}</td>
                         <td data-label="Total" class="amount">₹{{ item.get_total|floatformat:2 }}</td>
@@ -88,7 +90,7 @@
                         <td data-label="PO Number"><span class="invoice-id">{{ po.po_number }}</span></td>
                         <td data-label="Main Line #">{{ po.main_line_number }}</td>
                         <td data-label="Main Line Desc">{{ po.main_line_description }}</td>
-                        <td colspan="6" class="text-center">No subline items</td>
+                        <td colspan="7" class="text-center">No subline items</td>
                         <td data-label="Actions" class="actions">
                             <a href="{% url 'invoices:edit_po' po.pk %}" class="action-btn"><i class="fas fa-edit"></i></a>
                             <a href="{% url 'invoices:delete_po' po.pk %}" class="action-btn" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
@@ -97,7 +99,7 @@
                     {% endfor %}
                 {% empty %}
                 <tr>
-                    <td colspan="11" class="text-center">No Purchase Orders yet. <a href="{% url 'invoices:create_po' %}">Create one</a></td>
+                    <td colspan="12" class="text-center">No Purchase Orders yet. <a href="{% url 'invoices:create_po' %}">Create one</a></td>
                 </tr>
                 {% endfor %}
             </tbody>

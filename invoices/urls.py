@@ -50,6 +50,12 @@ urlpatterns = [
     # Reports
     path('reports/', views.reports, name='reports'),
     
+    # Credit Notes
+    path('credit-notes/', views.credit_note_list, name='credit_note_list'),
+    path('credit-notes/create/', views.create_credit_note, name='create_credit_note'),
+    path('credit-notes/<int:pk>/edit/', views.edit_credit_note, name='edit_credit_note'),
+    path('credit-notes/<int:pk>/pdf/', views.credit_note_pdf, name='credit_note_pdf'),
+    
     # Companies
     path('companies/', views.company_list, name='company_list'),
     path('companies/create/', views.create_company, name='create_company'),

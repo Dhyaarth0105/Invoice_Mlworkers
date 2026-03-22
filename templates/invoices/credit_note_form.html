@@ -1,0 +1,421 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block authenticated_content %}
+<div class="card">
+    <div class="card-header">
+        <h2>{{ title }}</h2>
+    </div>
+    <div class="modal-body">
+        <form method="post" id="creditNoteForm">
+            {% csrf_token %}
+            {{ formset.management_form }}
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.company.label }} <span class="text-danger">*</span></label>
+                    {{ form.company }}
+                    {% if form.company.errors %}
+                        <div class="text-danger">{{ form.company.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.credit_note_number.label }} <span class="text-danger">*</span></label>
+                    {{ form.credit_note_number }}
+                    {% if form.credit_note_number.errors %}
+                        <div class="text-danger">{{ form.credit_note_number.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.client.label }} <span class="text-danger">*</span></label>
+                    {{ form.client }}
+                    {% if form.client.errors %}
+                        <div class="text-danger">{{ form.client.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.date.label }} <span class="text-danger">*</span></label>
+                    {{ form.date }}
+                    {% if form.date.errors %}
+                        <div class="text-danger">{{ form.date.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>{{ form.invoice_reference.label }}</label>
+                    {{ form.invoice_reference }}
+                    {% if form.invoice_reference.errors %}
+                        <div class="text-danger">{{ form.invoice_reference.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.po_reference.label }}</label>
+                    {{ form.po_reference }}
+                    {% if form.po_reference.errors %}
+                        <div class="text-danger">{{ form.po_reference.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-group" style="border: 2px solid var(--primary); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0;">
+                <label style="font-weight: 600; margin-bottom: 1rem; display: block;">Billing & Shipping Details</label>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{{ form.bill_to_name.label }}</label>
+                        {{ form.bill_to_name }}
+                    </div>
+                     <div class="form-group">
+                        <label>{{ form.ship_to_name.label }}</label>
+                        {{ form.ship_to_name }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{{ form.bill_to_address.label }}</label>
+                        {{ form.bill_to_address }}
+                    </div>
+                    <div class="form-group">
+                        <label>{{ form.ship_to_address.label }}</label>
+                        {{ form.ship_to_address }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>{{ form.bill_to_gstin.label }}</label>
+                        {{ form.bill_to_gstin }}
+                    </div>
+                    <div class="form-group">
+                        <label>{{ form.ship_to_gstin.label }}</label>
+                        {{ form.ship_to_gstin }}
+                    </div>
+                </div>
+                <small class="text-muted">Fields will fallback to client default address and GSTIN if left empty.</small>
+            </div>
+            
+            <div class="form-group" style="border: 2px solid var(--success); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0;">
+                <label style="font-weight: 600; margin-bottom: 1rem; display: block;">Credit Note Items <span class="text-danger">*</span></label>
+                <div class="invoice-items">
+                    <div class="item-row-header" style="grid-template-columns: 2.5fr 1.2fr 1fr 1fr 1fr auto auto;">
+                        <div>Description</div>
+                        <div>Material Code</div>
+                        <div>SAC Code</div>
+                        <div>Quantity</div>
+                        <div>Rate</div>
+                        <div>Total</div>
+                        <div>Action</div>
+                    </div>
+                    {% for form in formset %}
+                    <div class="item-row" data-form-index="{{ forloop.counter0 }}" style="grid-template-columns: 2.5fr 1.2fr 1fr 1fr 1fr auto auto;" {% if form.DELETE and form.DELETE.value %}style="display: none;"{% endif %}>
+                        {{ form.id }}
+                        <div data-label="Description">{{ form.description }}</div>
+                        <div data-label="Material Code">{{ form.material_code }}</div>
+                        <div data-label="SAC Code">{{ form.sac_code }}</div>
+                        <div data-label="Quantity">{{ form.quantity }}</div>
+                        <div data-label="Rate">{{ form.rate }}</div>
+                        <span class="item-total" data-label="Total">₹0</span>
+                        {% if form.DELETE %}
+                            <div style="display: none;">{{ form.DELETE }}</div>
+                        {% endif %}
+                        <button type="button" class="remove-item"><i class="fas fa-trash"></i></button>
+                        {% if form.errors %}
+                            <div style="grid-column: 1 / -1; color: var(--danger); font-size: 0.85rem; margin-top: 4px;">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="add-item-btn" id="addItemBtn"><i class="fas fa-plus"></i> Add Item</button>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group checkbox-group" style="margin-bottom: 1rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        {{ form.is_igst }}
+                        <span>{{ form.is_igst.label }}</span>
+                    </label>
+                    <small class="text-muted" style="display: block; margin-top: 0.25rem;">Check if this is an inter-state supply (IGST applies instead of CGST/SGST).</small>
+                    {% if form.is_igst.errors %}
+                        <div class="text-danger">{{ form.is_igst.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-row" id="tax_rates_row">
+                <div class="form-group cgst-sgst-group">
+                    <label>{{ form.cgst_rate.label }}</label>
+                    {{ form.cgst_rate }}
+                    {% if form.cgst_rate.errors %}
+                        <div class="text-danger">{{ form.cgst_rate.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group cgst-sgst-group">
+                    <label>{{ form.sgst_rate.label }}</label>
+                    {{ form.sgst_rate }}
+                    {% if form.sgst_rate.errors %}
+                        <div class="text-danger">{{ form.sgst_rate.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group igst-group" style="display: none;">
+                    <label>{{ form.igst_rate.label }}</label>
+                    {{ form.igst_rate }}
+                    {% if form.igst_rate.errors %}
+                        <div class="text-danger">{{ form.igst_rate.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>{{ form.notes.label }}</label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                    <div class="text-danger">{{ form.notes.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="invoice-summary">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">₹0</span>
+                </div>
+                <div class="summary-row" id="cgstRow">
+                    <span>CGST (<span id="cgstRateDisplay">9</span>%)</span>
+                    <span id="cgstAmount">₹0</span>
+                </div>
+                <div class="summary-row" id="sgstRow">
+                    <span>SGST (<span id="sgstRateDisplay">9</span>%)</span>
+                    <span id="sgstAmount">₹0</span>
+                </div>
+                <div class="summary-row" id="igstRow" style="display: none;">
+                    <span>IGST (<span id="igstRateDisplay">18</span>%)</span>
+                    <span id="igstAmount">₹0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Total Tax</span>
+                    <span id="taxAmount">₹0</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span id="totalAmount">₹0</span>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <a href="{% url 'invoices:credit_note_list' %}" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save Credit Note</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Hidden template for new form rows -->
+<div id="empty-form-template" style="display: none;">
+    {{ formset.empty_form }}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.querySelector('.invoice-items');
+    const addBtn = document.getElementById('addItemBtn');
+    const totalFormsInput = document.getElementById('id_items-TOTAL_FORMS');
+    const emptyFormTemplate = document.getElementById('empty-form-template');
+    let formCount = parseInt(totalFormsInput.value);
+    
+    // Add item button
+    addBtn?.addEventListener('click', function() {
+        const emptyFormHtml = emptyFormTemplate.innerHTML;
+        const newFormHtml = emptyFormHtml.replace(/__prefix__/g, formCount);
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = newFormHtml;
+        
+        const newRow = document.createElement('div');
+        newRow.className = 'item-row';
+        newRow.style = "grid-template-columns: 3fr 1fr 1fr 1fr auto;";
+        
+        // Extract fields
+        const idField = tempDiv.querySelector('[name*="id"]');
+        const description = tempDiv.querySelector('[name*="description"]');
+        const materialCode = tempDiv.querySelector('[name*="material_code"]');
+        const sacCode = tempDiv.querySelector('[name*="sac_code"]');
+        const quantity = tempDiv.querySelector('[name*="quantity"]');
+        const rate = tempDiv.querySelector('[name*="rate"]');
+        const deleteField = tempDiv.querySelector('[name*="DELETE"]');
+        
+        // Add classes for calculation
+        if (quantity) quantity.classList.add('qty');
+        if (rate) rate.classList.add('rate');
+        
+        newRow.style = "grid-template-columns: 2.5fr 1.2fr 1fr 1fr 1fr auto auto;";
+        newRow.innerHTML = `
+            ${idField ? idField.outerHTML : ''}
+            <div>${description ? description.outerHTML : ''}</div>
+            <div>${materialCode ? materialCode.outerHTML : ''}</div>
+            <div>${sacCode ? sacCode.outerHTML : ''}</div>
+            <div>${quantity ? quantity.outerHTML : ''}</div>
+            <div>${rate ? rate.outerHTML : ''}</div>
+            <span class="item-total">₹0</span>
+            ${deleteField ? '<div style="display: none;">' + deleteField.outerHTML + '</div>' : ''}
+            <button type="button" class="remove-item"><i class="fas fa-trash"></i></button>
+        `;
+        
+        container.appendChild(newRow);
+        formCount++;
+        totalFormsInput.value = formCount;
+        
+        // Add event listeners
+        newRow.querySelectorAll('.qty, .rate, input[type="number"]').forEach(input => {
+            if (input.name && (input.name.includes('quantity') || input.name.includes('rate'))) {
+                input.addEventListener('input', calculateTotals);
+            }
+        });
+        
+        newRow.querySelector('.remove-item').addEventListener('click', function() {
+            const deleteInput = newRow.querySelector('input[name*="DELETE"]');
+            if (deleteInput) {
+                deleteInput.checked = true;
+                newRow.style.display = 'none';
+            } else {
+                newRow.remove();
+            }
+            calculateTotals();
+        });
+        
+        calculateTotals();
+    });
+    
+    // Remove item buttons
+    container.querySelectorAll('.remove-item').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('.item-row');
+            const deleteInput = row.querySelector('input[name*="DELETE"]');
+            if (deleteInput) {
+                deleteInput.checked = true;
+                row.style.display = 'none';
+            } else {
+                row.remove();
+            }
+            calculateTotals();
+        });
+    });
+    
+    // Calculate totals function
+    function calculateTotals() {
+        let subtotal = 0;
+        container.querySelectorAll('.item-row:not([style*="display: none"])').forEach(row => {
+            const qtyInput = row.querySelector('.qty, [name*="quantity"]');
+            const rateInput = row.querySelector('.rate, [name*="rate"]');
+            const qty = parseFloat(qtyInput?.value) || 0;
+            const rate = parseFloat(rateInput?.value) || 0;
+            const total = qty * rate;
+            const totalEl = row.querySelector('.item-total');
+            if (totalEl) {
+                totalEl.textContent = '₹' + total.toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+            subtotal += total;
+        });
+        
+        const isIgst = document.getElementById('id_is_igst')?.checked || false;
+        const cgstRate = parseFloat(document.getElementById('id_cgst_rate')?.value) || 0;
+        const sgstRate = parseFloat(document.getElementById('id_sgst_rate')?.value) || 0;
+        const igstRate = parseFloat(document.getElementById('id_igst_rate')?.value) || 0;
+        
+        const taxableAmount = subtotal;
+        let cgstAmt = 0;
+        let sgstAmt = 0;
+        let igstAmt = 0;
+        let taxAmt = 0;
+
+        if (isIgst) {
+            igstAmt = (taxableAmount * igstRate) / 100;
+            taxAmt = igstAmt;
+            document.getElementById('cgstRow').style.display = 'none';
+            document.getElementById('sgstRow').style.display = 'none';
+            document.getElementById('igstRow').style.display = 'flex';
+        } else {
+            cgstAmt = (taxableAmount * cgstRate) / 100;
+            sgstAmt = (taxableAmount * sgstRate) / 100;
+            taxAmt = cgstAmt + sgstAmt;
+            document.getElementById('cgstRow').style.display = 'flex';
+            document.getElementById('sgstRow').style.display = 'flex';
+            document.getElementById('igstRow').style.display = 'none';
+        }
+        const total = taxableAmount + taxAmt;
+        
+        document.getElementById('subtotal').textContent = '₹' + subtotal.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        document.getElementById('cgstAmount').textContent = '₹' + cgstAmt.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        document.getElementById('sgstAmount').textContent = '₹' + sgstAmt.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        document.getElementById('igstAmount').textContent = '₹' + igstAmt.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        document.getElementById('taxAmount').textContent = '₹' + taxAmt.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        document.getElementById('totalAmount').textContent = '₹' + total.toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        document.getElementById('cgstRateDisplay').textContent = cgstRate;
+        document.getElementById('sgstRateDisplay').textContent = sgstRate;
+        document.getElementById('igstRateDisplay').textContent = igstRate;
+    }
+    
+    // Toggle IGST fields
+    const isIgstCheckbox = document.getElementById('id_is_igst');
+    if (isIgstCheckbox) {
+        isIgstCheckbox.addEventListener('change', function() {
+            const isIgst = this.checked;
+            document.querySelectorAll('.cgst-sgst-group').forEach(el => {
+                el.style.display = isIgst ? 'none' : 'block';
+            });
+            document.querySelectorAll('.igst-group').forEach(el => {
+                el.style.display = isIgst ? 'block' : 'none';
+            });
+            calculateTotals();
+        });
+        // trigger change event once to set initial state
+        isIgstCheckbox.dispatchEvent(new Event('change'));
+    }
+    
+    // Event listeners
+    container.querySelectorAll('.qty, .rate, input[type="number"]').forEach(input => {
+        if (input.name && (input.name.includes('quantity') || input.name.includes('rate'))) {
+            input.addEventListener('input', calculateTotals);
+        }
+    });
+    document.getElementById('id_cgst_rate')?.addEventListener('input', calculateTotals);
+    document.getElementById('id_sgst_rate')?.addEventListener('input', calculateTotals);
+    document.getElementById('id_igst_rate')?.addEventListener('input', calculateTotals);
+    
+    // Initial calculation
+    calculateTotals();
+});
+</script>
+{% endblock %}

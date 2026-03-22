@@ -8,11 +8,11 @@ from datetime import date, timedelta
 from decimal import Decimal
 import json
 from .models import (
-    Client, Product, PurchaseOrder, POLineItem, Invoice, InvoiceItem, Company, CompanySettings, UOM, Payment
+    Client, Product, PurchaseOrder, POLineItem, Invoice, InvoiceItem, Company, CompanySettings, UOM, Payment, CreditNote, CreditNoteItem
 )
 from .forms import (
     PurchaseOrderForm, POLineItemFormSet, InvoiceForm, InvoiceItemFormSet,
-    get_invoice_item_formset, ClientForm, ProductForm, CompanyForm, CompanySettingsForm, UOMForm, PaymentForm
+    get_invoice_item_formset, ClientForm, ProductForm, CompanyForm, CompanySettingsForm, UOMForm, PaymentForm, CreditNoteForm, CreditNoteItemFormSet
 )
 
 
@@ -603,6 +603,34 @@ def reports(request):
     base_invoices = _user_invoices(request)
     user_companies = _user_companies(request)
     
+    # Financial Year filtering
+    selected_fy = request.GET.get('fy')
+    if selected_fy:
+        try:
+            start_year, end_year = map(int, selected_fy.split('-'))
+            fy_start = date(start_year, 4, 1)
+            fy_end = date(end_year, 3, 31)
+            base_invoices = base_invoices.filter(invoice_date__gte=fy_start, invoice_date__lte=fy_end)
+        except ValueError:
+            pass
+
+    # Company filtering
+    selected_company_id = request.GET.get('company')
+    if selected_company_id:
+        try:
+            selected_company = Company.objects.get(pk=selected_company_id, user=request.user)
+            base_invoices = base_invoices.filter(company=selected_company)
+        except Company.DoesNotExist:
+            pass
+            
+    # Generate list of financial years
+    current_year = date.today().year
+    current_month = date.today().month
+    if current_month < 4:
+        current_year -= 1
+    fy_options = [f"{year}-{year+1}" for year in range(2020, current_year + 1)]
+    fy_options.reverse()
+    
     total_revenue = base_invoices.filter(status='PAID').aggregate(total=Sum('total'))['total'] or Decimal('0')
     paid_count = base_invoices.filter(status='PAID').count()
     pending_count = base_invoices.filter(status='PENDING').count()
@@ -652,6 +680,10 @@ def reports(request):
         'monthly_revenue': monthly_revenue,
         'status_breakdown': status_breakdown,
         'client_revenue': client_revenue,
+        'companies': user_companies,
+        'selected_company_id': int(selected_company_id) if selected_company_id and selected_company_id.isdigit() else None,
+        'fy_options': fy_options,
+        'selected_fy': selected_fy,
     }
     return render(request, 'invoices/reports.html', context)
 
@@ -876,6 +908,8 @@ def api_po_line_item_detail(request, item_id):
         return JsonResponse({
             'id': item.id,
             'description': item.subline_description,
+            'material_code': item.material_code,
+            'sac_code': item.hsn_sac_code,
             'quantity': str(item.quantity),
             'available_quantity': str(item.get_available_quantity()),
             'price': str(item.price),
@@ -1194,3 +1228,81 @@ def einvoice_info(request, pk):
     }
     
     return render(request, 'invoices/einvoice_info.html', einvoice_info)
+
+
+@login_required
+def credit_note_list(request):
+    """List all credit notes"""
+    user_companies = _user_companies(request)
+    credit_notes = CreditNote.objects.filter(company__in=user_companies).order_by('-created_at')
+    return render(request, 'invoices/credit_note_list.html', {'credit_notes': credit_notes})
+
+@login_required
+def create_credit_note(request):
+    """Create new credit note"""
+    if request.method == 'POST':
+        form = CreditNoteForm(request.POST)
+        formset = CreditNoteItemFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
+            credit_note = form.save(commit=False)
+            credit_note.created_by = request.user
+            credit_note.save()
+            formset.instance = credit_note
+            formset.save()
+            messages.success(request, 'Credit Note created successfully!')
+            return redirect('invoices:credit_note_list')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        form = CreditNoteForm()
+        invoice_id = request.GET.get('invoice_id')
+        if invoice_id:
+            invoice = Invoice.objects.filter(pk=invoice_id).first()
+            if invoice:
+                form = CreditNoteForm(initial={
+                    'company': invoice.company,
+                    'client': invoice.client,
+                    'invoice_reference': invoice,
+                    'po_reference': invoice.po_reference,
+                    'date': date.today(),
+                    'is_igst': getattr(invoice, 'is_igst', False),
+                    'cgst_rate': invoice.cgst_rate,
+                    'sgst_rate': invoice.sgst_rate,
+                    'igst_rate': getattr(invoice, 'igst_rate', Decimal('18.00')),
+                    'bill_to_name': invoice.bill_to_name,
+                    'bill_to_address': invoice.bill_to_address,
+                    'bill_to_gstin': invoice.bill_to_gstin,
+                    'ship_to_name': invoice.ship_to_name,
+                    'ship_to_address': invoice.ship_to_address,
+                    'ship_to_gstin': invoice.ship_to_gstin,
+                })
+        formset = CreditNoteItemFormSet()
+    return render(request, 'invoices/credit_note_form.html', {'form': form, 'formset': formset, 'title': 'Create Credit Note'})
+
+@login_required
+def edit_credit_note(request, pk):
+    """Edit credit note"""
+    user_companies = _user_companies(request)
+    credit_note = get_object_or_404(CreditNote, pk=pk, company__in=user_companies)
+    if request.method == 'POST':
+        form = CreditNoteForm(request.POST, instance=credit_note)
+        formset = CreditNoteItemFormSet(request.POST, instance=credit_note)
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            messages.success(request, 'Credit Note updated successfully!')
+            return redirect('invoices:credit_note_list')
+    else:
+        form = CreditNoteForm(instance=credit_note)
+        formset = CreditNoteItemFormSet(instance=credit_note)
+    return render(request, 'invoices/credit_note_form.html', {'form': form, 'formset': formset, 'title': 'Edit Credit Note', 'credit_note': credit_note})
+
+@login_required
+def credit_note_pdf(request, pk):
+    """Generate PDF for credit note"""
+    from .pdf_utils import generate_credit_note_pdf
+    user_companies = _user_companies(request)
+    cn = get_object_or_404(CreditNote, pk=pk, company__in=user_companies)
+    return generate_credit_note_pdf(cn, cn.items.all(), cn.company, cn.client)

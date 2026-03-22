@@ -75,6 +75,7 @@
                     <thead>
                         <tr>
                             <th>Description</th>
+                            <th>Material Code</th>
                             <th>SAC Code</th>
                             <th>Quantity</th>
                             <th>Rate</th>
@@ -85,6 +86,7 @@
                         {% for item in items %}
                         <tr>
                             <td>{{ item.description }}</td>
+                            <td>{{ item.material_code|default:"-" }}</td>
                             <td>{{ item.sac_code|default:"-" }}</td>
                             <td>{{ item.quantity }}</td>
                             <td class="amount">₹{{ item.rate|floatformat:2 }}</td>
@@ -92,7 +94,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="text-center">No items</td>
+                            <td colspan="6" class="text-center">No items</td>
                         </tr>
                         {% endfor %}
                     </tbody>
