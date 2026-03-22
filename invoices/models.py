@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
+from django.db.models import Sum
 from decimal import Decimal
 
 User = get_user_model()
@@ -101,6 +102,8 @@ class POLineItem(models.Model):
     purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name='subline_items')
     subline_number = models.CharField(max_length=50)
     subline_description = models.CharField(max_length=500)
+    material_code = models.CharField(max_length=100, blank=True, null=True, help_text="Material/Service Code")
+    hsn_sac_code = models.CharField(max_length=50, blank=True, null=True, help_text="HSN/SAC Code")
     quantity = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0'))])
     price = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0'))], default=Decimal('0.00'))
     uom = models.ForeignKey(UOM, on_delete=models.PROTECT, related_name='po_line_items')
@@ -151,13 +154,24 @@ class Invoice(models.Model):
     invoice_date = models.DateField()
     due_date = models.DateField()
     
+    # Billing / Shipping
+    bill_to_name = models.CharField(max_length=200, blank=True, null=True)
+    bill_to_address = models.TextField(blank=True, null=True)
+    bill_to_gstin = models.CharField(max_length=15, blank=True, null=True)
+    ship_to_name = models.CharField(max_length=200, blank=True, null=True)
+    ship_to_address = models.TextField(blank=True, null=True)
+    ship_to_gstin = models.CharField(max_length=15, blank=True, null=True)
+    
     # Tax details
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('18.00'))
+    is_igst = models.BooleanField(default=False, help_text="Apply IGST instead of CGST/SGST")
     cgst_rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('9.00'), help_text="CGST Rate (%)")
     sgst_rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('9.00'), help_text="SGST Rate (%)")
+    igst_rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('18.00'), help_text="IGST Rate (%)")
     cgst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     sgst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    igst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     tax_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
     
     discount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
@@ -200,24 +214,38 @@ class Invoice(models.Model):
         items = self.items.all()
         self.subtotal = sum(item.total for item in items)
         
-        # Calculate CGST and SGST (split tax)
+        # Calculate Taxes
         taxable_amount = self.subtotal - self.discount
-        self.cgst_amount = (taxable_amount * self.cgst_rate) / 100
-        self.sgst_amount = (taxable_amount * self.sgst_rate) / 100
-        self.tax_amount = self.cgst_amount + self.sgst_amount
+        if self.is_igst:
+            self.igst_amount = (taxable_amount * self.igst_rate) / 100
+            self.cgst_amount = Decimal('0.00')
+            self.sgst_amount = Decimal('0.00')
+            self.tax_amount = self.igst_amount
+        else:
+            self.cgst_amount = (taxable_amount * self.cgst_rate) / 100
+            self.sgst_amount = (taxable_amount * self.sgst_rate) / 100
+            self.igst_amount = Decimal('0.00')
+            self.tax_amount = self.cgst_amount + self.sgst_amount
         
         self.total = taxable_amount + self.tax_amount
         self.save()
     
     def get_amount_in_words(self):
-        """Convert total amount to words"""
+        """Convert total amount to words using num2words or simple fallback"""
         try:
             from num2words import num2words
-            amount = float(self.total)
-            words = num2words(amount, lang='en_IN', to='currency', currency='INR')
-            return words.replace('euro', 'rupees').replace('cents', 'paisa').title()
-        except (ImportError, Exception):
-            # Fallback if num2words not installed or error
+            # Try en_IN first
+            try:
+                words = num2words(float(self.total), lang='en_IN', to='currency', currency='INR')
+            except:
+                # Fallback to standard en with manual currency
+                words = num2words(float(self.total), lang='en', to='currency', currency='INR')
+            
+            # Ensure Indian naming if not en_IN
+            words = words.replace('euro', 'rupees').replace('cents', 'paise')
+            return f"{words.title()} Only"
+        except Exception:
+            # Last resort fallback
             return f"Rupees {self.total:,.2f} Only"
     
     def get_status_class(self):
@@ -232,10 +260,8 @@ class Invoice(models.Model):
     
     def get_total_paid(self):
         """Get total amount paid (excluding on-hold payments)"""
-        from .models import Payment
         return sum(
-            p.net_amount for p in Payment.objects.filter(
-                invoice=self, 
+            p.net_amount for p in self.payments.filter(
                 status='RECEIVED', 
                 is_on_hold=False
             )
@@ -252,6 +278,10 @@ class Invoice(models.Model):
     def get_outstanding_amount(self):
         """Get outstanding amount"""
         return self.total - self.get_total_paid()
+    
+    def get_balance(self):
+        """Alias for get_outstanding_amount primarily used in PDF generation"""
+        return self.get_outstanding_amount()
     
     def get_payment_status(self):
         """Get payment status based on payments"""
@@ -283,7 +313,8 @@ class InvoiceItem(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='items')
     po_line_item = models.ForeignKey(POLineItem, on_delete=models.SET_NULL, null=True, blank=True, related_name='invoice_items', help_text="Linked PO Line Item")
     description = models.CharField(max_length=500)
-    sac_code = models.CharField(max_length=10, blank=True, null=True, help_text="Service Accounting Code (SAC)")
+    material_code = models.CharField(max_length=100, blank=True, null=True, help_text="Material/Service Code")
+    sac_code = models.CharField(max_length=50, blank=True, null=True, help_text="HSN/SAC Code")
     quantity = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0'))])
     rate = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0'))])
     total = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
@@ -303,6 +334,12 @@ class InvoiceItem(models.Model):
         # Recalculate invoice totals
         if self.invoice:
             self.invoice.calculate_totals()
+            
+    @property
+    def uom_display(self):
+        if self.po_line_item and hasattr(self.po_line_item, 'uom') and self.po_line_item.uom:
+            return self.po_line_item.uom.code or self.po_line_item.uom.name
+        return "Pcs"
 
 
 class Company(models.Model):
@@ -312,9 +349,11 @@ class Company(models.Model):
     gstin = models.CharField(max_length=15, blank=True, null=True)
     pan = models.CharField(max_length=10, blank=True, null=True)
     cin = models.CharField(max_length=21, blank=True, null=True, help_text="Company Identification Number")
+    udhyam_number = models.CharField(max_length=100, blank=True, null=True, help_text="Udhyam Registration Number")
     address = models.TextField()
     email = models.EmailField(blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
+    state_code = models.CharField(max_length=100, blank=True, null=True, help_text="e.g. 24-Gujarat")
     
     # Invoice settings
     invoice_prefix = models.CharField(max_length=20, default='INV-')
@@ -532,3 +571,95 @@ class CompanySettings(models.Model):
         """Get or create company settings"""
         obj, created = cls.objects.get_or_create(pk=1)
         return obj
+
+class CreditNote(models.Model):
+    """Credit Note model"""
+    credit_note_number = models.CharField(max_length=100, unique=True)
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='credit_notes', null=True, blank=True)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='credit_notes')
+    invoice_reference = models.ForeignKey(Invoice, on_delete=models.SET_NULL, null=True, blank=True, related_name='credit_notes')
+    po_reference = models.ForeignKey(PurchaseOrder, on_delete=models.SET_NULL, null=True, blank=True, related_name='credit_notes')
+    
+    date = models.DateField()
+    
+    # Billing / Shipping
+    bill_to_name = models.CharField(max_length=200, blank=True, null=True)
+    bill_to_address = models.TextField(blank=True, null=True)
+    bill_to_gstin = models.CharField(max_length=15, blank=True, null=True)
+    ship_to_name = models.CharField(max_length=200, blank=True, null=True)
+    ship_to_address = models.TextField(blank=True, null=True)
+    ship_to_gstin = models.CharField(max_length=15, blank=True, null=True)
+    
+    # Tax details
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    is_igst = models.BooleanField(default=False)
+    cgst_rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('9.00'))
+    sgst_rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('9.00'))
+    igst_rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('18.00'))
+    cgst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    sgst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    igst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    tax_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    
+    notes = models.TextField(blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'credit_notes'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.credit_note_number} - {self.client.name}"
+    
+    def calculate_totals(self):
+        items = self.items.all()
+        self.subtotal = sum(item.total for item in items)
+        
+        taxable_amount = self.subtotal
+        if self.is_igst:
+            self.igst_amount = (taxable_amount * self.igst_rate) / 100
+            self.cgst_amount = Decimal('0.00')
+            self.sgst_amount = Decimal('0.00')
+            self.tax_amount = self.igst_amount
+        else:
+            self.cgst_amount = (taxable_amount * self.cgst_rate) / 100
+            self.sgst_amount = (taxable_amount * self.sgst_rate) / 100
+            self.igst_amount = Decimal('0.00')
+            self.tax_amount = self.cgst_amount + self.sgst_amount
+        
+        self.total = taxable_amount + self.tax_amount
+        self.save()
+        
+    def get_amount_in_words(self):
+        try:
+            from num2words import num2words
+            amount = float(self.total)
+            words = num2words(amount, lang='en_IN', to='currency', currency='INR')
+            return words.replace('euro', 'rupees').replace('cents', 'paisa').title()
+        except (ImportError, Exception):
+            return f"Rupees {self.total:,.2f} Only"
+
+
+class CreditNoteItem(models.Model):
+    """Credit Note line items"""
+    credit_note = models.ForeignKey(CreditNote, on_delete=models.CASCADE, related_name='items')
+    description = models.CharField(max_length=500)
+    material_code = models.CharField(max_length=100, blank=True, null=True, help_text="Material/Service Code")
+    sac_code = models.CharField(max_length=50, blank=True, null=True)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0'))])
+    rate = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal('0'))])
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    
+    class Meta:
+        db_table = 'credit_note_items'
+        ordering = ['id']
+        
+    def save(self, *args, **kwargs):
+        self.total = self.quantity * self.rate
+        super().save(*args, **kwargs)
+        if self.credit_note:
+            self.credit_note.calculate_totals()

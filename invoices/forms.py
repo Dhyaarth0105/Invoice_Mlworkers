@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import inlineformset_factory
 from .models import (
-    PurchaseOrder, POLineItem, Invoice, InvoiceItem, Client, Product, Company, CompanySettings, UOM, Payment
+    PurchaseOrder, POLineItem, Invoice, InvoiceItem, Client, Product, Company, CompanySettings, UOM, Payment, CreditNote, CreditNoteItem
 )
 from decimal import Decimal
 
@@ -33,10 +33,12 @@ class PurchaseOrderForm(forms.ModelForm):
 class POLineItemForm(forms.ModelForm):
     class Meta:
         model = POLineItem
-        fields = ['subline_number', 'subline_description', 'quantity', 'price', 'uom']
+        fields = ['subline_number', 'subline_description', 'material_code', 'hsn_sac_code', 'quantity', 'price', 'uom']
         widgets = {
-            'subline_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'subline_description': forms.TextInput(attrs={'class': 'form-control'}),
+            'subline_number': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
+            'subline_description': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
+            'material_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Material Code'}),
+            'hsn_sac_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'HSN/SAC Code'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control qty', 'step': '0.01'}),
             'price': forms.NumberInput(attrs={'class': 'form-control price', 'step': '0.01'}),
             'uom': forms.Select(attrs={'class': 'form-control'}),
@@ -60,7 +62,8 @@ class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
         fields = ['invoice_number', 'company', 'client', 'po_reference', 'po_number', 'po_date', 'vendor_code',
-                  'invoice_date', 'due_date', 'status', 'tax_rate', 'cgst_rate', 'sgst_rate', 
+                  'invoice_date', 'due_date', 'status', 'tax_rate', 'is_igst', 'cgst_rate', 'sgst_rate', 'igst_rate',
+                  'bill_to_name', 'bill_to_address', 'bill_to_gstin', 'ship_to_name', 'ship_to_address', 'ship_to_gstin',
                   'discount', 'place_of_supply', 'state_code', 'reverse_charge', 'notes',
                   'measurement_sheet', 'bill_summary']
         widgets = {
@@ -75,8 +78,16 @@ class InvoiceForm(forms.ModelForm):
             'due_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
             'tax_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'readonly': True}),
+            'is_igst': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'cgst_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'sgst_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'igst_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'bill_to_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'bill_to_address': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'bill_to_gstin': forms.TextInput(attrs={'class': 'form-control'}),
+            'ship_to_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'ship_to_address': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'ship_to_gstin': forms.TextInput(attrs={'class': 'form-control'}),
             'discount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'place_of_supply': forms.TextInput(attrs={'class': 'form-control'}),
             'state_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., 24 for Gujarat'}),
@@ -121,11 +132,12 @@ class InvoiceForm(forms.ModelForm):
 class InvoiceItemForm(forms.ModelForm):
     class Meta:
         model = InvoiceItem
-        fields = ['po_line_item', 'description', 'sac_code', 'quantity', 'rate']
+        fields = ['po_line_item', 'description', 'material_code', 'sac_code', 'quantity', 'rate']
         widgets = {
             'po_line_item': forms.Select(attrs={'class': 'form-control po-line-item-select'}),
             'description': forms.TextInput(attrs={'class': 'form-control'}),
-            'sac_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'SAC Code (e.g., 998871)'}),
+            'material_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Material Code'}),
+            'sac_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'HSN/SAC Code (e.g., 998871)'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control qty', 'step': '0.01'}),
             'rate': forms.NumberInput(attrs={'class': 'form-control rate', 'step': '0.01'}),
         }
@@ -233,7 +245,7 @@ class ProductForm(forms.ModelForm):
 class CompanyForm(forms.ModelForm):
     class Meta:
         model = Company
-        fields = ['name', 'gstin', 'pan', 'cin', 'address', 'email', 'phone',
+        fields = ['name', 'gstin', 'pan', 'cin', 'udhyam_number', 'address', 'email', 'phone', 'state_code',
                   'invoice_prefix', 'default_due_days', 'default_tax_rate', 'currency',
                   'bank_name', 'account_number', 'ifsc_code', 'branch', 'stamp', 'is_default']
         widgets = {
@@ -241,9 +253,11 @@ class CompanyForm(forms.ModelForm):
             'gstin': forms.TextInput(attrs={'class': 'form-control'}),
             'pan': forms.TextInput(attrs={'class': 'form-control'}),
             'cin': forms.TextInput(attrs={'class': 'form-control'}),
+            'udhyam_number': forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'required': True}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'state_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., 24-Gujarat'}),
             'invoice_prefix': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
             'default_due_days': forms.NumberInput(attrs={'class': 'form-control', 'required': True}),
             'default_tax_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'required': True}),
@@ -355,3 +369,55 @@ class UOMForm(forms.ModelForm):
             'description': forms.TextInput(attrs={'class': 'form-control'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+class CreditNoteForm(forms.ModelForm):
+    class Meta:
+        model = CreditNote
+        fields = ['credit_note_number', 'company', 'client', 'invoice_reference', 'po_reference',
+                  'date', 'is_igst', 'cgst_rate', 'sgst_rate', 'igst_rate',
+                  'bill_to_name', 'bill_to_address', 'bill_to_gstin', 'ship_to_name', 'ship_to_address', 'ship_to_gstin',
+                  'notes']
+        widgets = {
+            'credit_note_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'company': forms.Select(attrs={'class': 'form-control'}),
+            'client': forms.Select(attrs={'class': 'form-control'}),
+            'invoice_reference': forms.Select(attrs={'class': 'form-control'}),
+            'po_reference': forms.Select(attrs={'class': 'form-control'}),
+            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'is_igst': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'cgst_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'sgst_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'igst_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'bill_to_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'bill_to_address': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'bill_to_gstin': forms.TextInput(attrs={'class': 'form-control'}),
+            'ship_to_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'ship_to_address': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'ship_to_gstin': forms.TextInput(attrs={'class': 'form-control'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+class CreditNoteItemForm(forms.ModelForm):
+    class Meta:
+        model = CreditNoteItem
+        fields = ['description', 'material_code', 'sac_code', 'quantity', 'rate']
+        widgets = {
+            'description': forms.TextInput(attrs={'class': 'form-control'}),
+            'material_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Material Code'}),
+            'sac_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'HSN/SAC Code'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control qty', 'step': '0.01'}),
+            'rate': forms.NumberInput(attrs={'class': 'form-control rate', 'step': '0.01'}),
+        }
+        widgets = {
+            'description': forms.TextInput(attrs={'class': 'form-control'}),
+            'sac_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control qty', 'step': '0.01'}),
+            'rate': forms.NumberInput(attrs={'class': 'form-control rate', 'step': '0.01'}),
+        }
+
+CreditNoteItemFormSet = inlineformset_factory(
+    CreditNote, CreditNoteItem,
+    form=CreditNoteItemForm,
+    extra=1,
+    can_delete=True
+)
