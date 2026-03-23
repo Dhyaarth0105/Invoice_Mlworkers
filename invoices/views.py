@@ -1242,9 +1242,9 @@ def create_credit_note(request):
     """Create new credit note"""
     if request.method == 'POST':
         form = CreditNoteForm(request.POST)
-        formset = CreditNoteItemFormSet(request.POST)
+        credit_note = form.save(commit=False)
+        formset = CreditNoteItemFormSet(request.POST, instance=credit_note, form_kwargs={'credit_note': credit_note})
         if form.is_valid() and formset.is_valid():
-            credit_note = form.save(commit=False)
             credit_note.created_by = request.user
             credit_note.save()
             formset.instance = credit_note
@@ -1278,7 +1278,8 @@ def create_credit_note(request):
                     'ship_to_address': invoice.ship_to_address,
                     'ship_to_gstin': invoice.ship_to_gstin,
                 })
-        formset = CreditNoteItemFormSet()
+                form.instance.po_reference = invoice.po_reference
+        formset = CreditNoteItemFormSet(form_kwargs={'credit_note': form.instance})
     return render(request, 'invoices/credit_note_form.html', {'form': form, 'formset': formset, 'title': 'Create Credit Note'})
 
 @login_required
@@ -1288,7 +1289,7 @@ def edit_credit_note(request, pk):
     credit_note = get_object_or_404(CreditNote, pk=pk, company__in=user_companies)
     if request.method == 'POST':
         form = CreditNoteForm(request.POST, instance=credit_note)
-        formset = CreditNoteItemFormSet(request.POST, instance=credit_note)
+        formset = CreditNoteItemFormSet(request.POST, instance=credit_note, form_kwargs={'credit_note': credit_note})
         if form.is_valid() and formset.is_valid():
             form.save()
             formset.save()
@@ -1296,7 +1297,7 @@ def edit_credit_note(request, pk):
             return redirect('invoices:credit_note_list')
     else:
         form = CreditNoteForm(instance=credit_note)
-        formset = CreditNoteItemFormSet(instance=credit_note)
+        formset = CreditNoteItemFormSet(instance=credit_note, form_kwargs={'credit_note': credit_note})
     return render(request, 'invoices/credit_note_form.html', {'form': form, 'formset': formset, 'title': 'Edit Credit Note', 'credit_note': credit_note})
 
 @login_required

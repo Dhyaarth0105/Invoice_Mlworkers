@@ -417,7 +417,7 @@ def generate_credit_note_pdf(credit_note, items, company, client):
             Paragraph(item.description, style_left),
             item.sac_code or "",
             f"{item.quantity:.0f}",
-            "Pcs",
+            item.uom_display,
             f"{item.rate:,.2f}",
             f"{tax_amt:,.2f}",
             f"{row_total:,.2f}"

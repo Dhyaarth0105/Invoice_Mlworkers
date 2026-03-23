@@ -647,6 +647,7 @@ class CreditNote(models.Model):
 class CreditNoteItem(models.Model):
     """Credit Note line items"""
     credit_note = models.ForeignKey(CreditNote, on_delete=models.CASCADE, related_name='items')
+    po_line_item = models.ForeignKey('POLineItem', on_delete=models.SET_NULL, null=True, blank=True, related_name='credit_note_items', help_text="Linked PO Line Item")
     description = models.CharField(max_length=500)
     material_code = models.CharField(max_length=100, blank=True, null=True, help_text="Material/Service Code")
     sac_code = models.CharField(max_length=50, blank=True, null=True)
@@ -663,3 +664,9 @@ class CreditNoteItem(models.Model):
         super().save(*args, **kwargs)
         if self.credit_note:
             self.credit_note.calculate_totals()
+
+    @property
+    def uom_display(self):
+        if self.po_line_item and hasattr(self.po_line_item, 'uom') and self.po_line_item.uom:
+            return self.po_line_item.uom.code or self.po_line_item.uom.name
+        return "Pcs"

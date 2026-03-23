@@ -400,20 +400,29 @@ class CreditNoteForm(forms.ModelForm):
 class CreditNoteItemForm(forms.ModelForm):
     class Meta:
         model = CreditNoteItem
-        fields = ['description', 'material_code', 'sac_code', 'quantity', 'rate']
+        fields = ['po_line_item', 'description', 'material_code', 'sac_code', 'quantity', 'rate']
         widgets = {
+            'po_line_item': forms.Select(attrs={'class': 'form-control po-line-item-select'}),
             'description': forms.TextInput(attrs={'class': 'form-control'}),
             'material_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Material Code'}),
             'sac_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'HSN/SAC Code'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control qty', 'step': '0.01'}),
             'rate': forms.NumberInput(attrs={'class': 'form-control rate', 'step': '0.01'}),
         }
-        widgets = {
-            'description': forms.TextInput(attrs={'class': 'form-control'}),
-            'sac_code': forms.TextInput(attrs={'class': 'form-control'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control qty', 'step': '0.01'}),
-            'rate': forms.NumberInput(attrs={'class': 'form-control rate', 'step': '0.01'}),
-        }
+        
+    def __init__(self, *args, **kwargs):
+        credit_note = kwargs.pop('credit_note', None)
+        super().__init__(*args, **kwargs)
+        
+        # Filter PO line items based on credit note's PO reference
+        if credit_note and getattr(credit_note, 'po_reference', None):
+            self.fields['po_line_item'].queryset = POLineItem.objects.filter(
+                purchase_order=credit_note.po_reference
+            ).order_by('subline_number')
+            self.fields['po_line_item'].required = False
+        else:
+            self.fields['po_line_item'].queryset = POLineItem.objects.none()
+            self.fields['po_line_item'].required = False
 
 CreditNoteItemFormSet = inlineformset_factory(
     CreditNote, CreditNoteItem,

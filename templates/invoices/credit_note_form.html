@@ -69,7 +69,8 @@
             <div class="form-group" style="border: 2px solid var(--success); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0;">
                 <label style="font-weight: 600; margin-bottom: 1rem; display: block;">Credit Note Items <span class="text-danger">*</span></label>
                 <div class="invoice-items">
-                    <div class="item-row-header" style="grid-template-columns: 2.5fr 1.2fr 1fr 1fr 1fr auto auto;">
+                    <div class="item-row-header">
+                        <div>PO Line Item</div>
                         <div>Description</div>
                         <div>Material Code</div>
                         <div>SAC Code</div>
@@ -79,8 +80,9 @@
                         <div>Action</div>
                     </div>
                     {% for form in formset %}
-                    <div class="item-row" data-form-index="{{ forloop.counter0 }}" style="grid-template-columns: 2.5fr 1.2fr 1fr 1fr 1fr auto auto;" {% if form.DELETE and form.DELETE.value %}style="display: none;"{% endif %}>
+                    <div class="item-row" data-form-index="{{ forloop.counter0 }}" {% if form.DELETE and form.DELETE.value %}style="display: none;"{% endif %}>
                         {{ form.id }}
+                        <div data-label="PO Line Item">{{ form.po_line_item }}</div>
                         <div data-label="Description">{{ form.description }}</div>
                         <div data-label="Material Code">{{ form.material_code }}</div>
                         <div data-label="SAC Code">{{ form.sac_code }}</div>
@@ -215,6 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Extract fields
         const idField = tempDiv.querySelector('[name*="id"]');
+        const poLineItem = tempDiv.querySelector('[name*="po_line_item"]');
         const description = tempDiv.querySelector('[name*="description"]');
         const materialCode = tempDiv.querySelector('[name*="material_code"]');
         const sacCode = tempDiv.querySelector('[name*="sac_code"]');
@@ -226,12 +229,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (quantity) quantity.classList.add('qty');
         if (rate) rate.classList.add('rate');
         
-        newRow.style = "grid-template-columns: 2.5fr 1.2fr 1fr 1fr 1fr auto auto;";
         newRow.innerHTML = `
             ${idField ? idField.outerHTML : ''}
-            <div>${description ? description.outerHTML : ''}</div>
-            <div>${materialCode ? materialCode.outerHTML : ''}</div>
-            <div>${sacCode ? sacCode.outerHTML : ''}</div>
+            <div data-label="PO Line Item">${poLineItem ? poLineItem.outerHTML : ''}</div>
+            <div data-label="Description">${description ? description.outerHTML : ''}</div>
+            <div data-label="Material Code">${materialCode ? materialCode.outerHTML : ''}</div>
+            <div data-label="SAC Code">${sacCode ? sacCode.outerHTML : ''}</div>
             <div>${quantity ? quantity.outerHTML : ''}</div>
             <div>${rate ? rate.outerHTML : ''}</div>
             <span class="item-total">₹0</span>
@@ -383,6 +386,116 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initial calculation
     calculateTotals();
+    
+    // --- PO Line Item Logic ---
+    const poReferenceSelect = document.getElementById('id_po_reference');
+    
+    if (poReferenceSelect) {
+        poReferenceSelect.addEventListener('change', function() {
+            updateAllPOLineItemOptions();
+        });
+    }
+    
+    function updateAllPOLineItemOptions() {
+        const rows = container.querySelectorAll('.item-row');
+        rows.forEach(row => {
+            updatePOLineItemOptions(row);
+        });
+    }
+    
+    function updatePOLineItemOptions(row) {
+        const poLineItemSelect = row.querySelector('[name*="po_line_item"]');
+        if (!poReferenceSelect || !poLineItemSelect) return;
+        
+        const poId = poReferenceSelect.value;
+        if (poId && poId !== '') {
+            const currentValue = poLineItemSelect.value;
+            const currentHTML = poLineItemSelect.innerHTML;
+            
+            if (!currentHTML || currentHTML.includes('----------') || 
+                currentHTML.includes('Select PO Reference') ||
+                poLineItemSelect.options.length <= 1) {
+                poLineItemSelect.innerHTML = '<option value="">Loading...</option>';
+                poLineItemSelect.disabled = true;
+            }
+            
+            fetch(`/api/po/${poId}/line-items/`, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                poLineItemSelect.innerHTML = '<option value="">Select PO Line Item</option>';
+                poLineItemSelect.disabled = false;
+                
+                if (data && data.items && data.items.length > 0) {
+                    data.items.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = `${item.subline_number} - ${item.description} (Invoiced: ${item.invoiced_quantity})`; // Using invoiced qty as context
+                        option.dataset.description = item.description;
+                        option.dataset.quantity = item.invoiced_quantity; 
+                        option.dataset.price = item.price;
+                        poLineItemSelect.appendChild(option);
+                    });
+                    if (currentValue && currentValue !== '') {
+                        poLineItemSelect.value = currentValue;
+                    }
+                } else {
+                    poLineItemSelect.innerHTML = '<option value="">No line items available</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching PO line items:', error);
+                poLineItemSelect.innerHTML = '<option value="">Error loading items</option>';
+                poLineItemSelect.disabled = false;
+            });
+        } else {
+            poLineItemSelect.innerHTML = '<option value="">Select PO Reference first</option>';
+            poLineItemSelect.disabled = false;
+        }
+    }
+    
+    // Add event listeners for existing PO line item selects
+    container.querySelectorAll('[name*="po_line_item"]').forEach(select => {
+        select.addEventListener('change', autoFillFromPOLineItem);
+    });
+    
+    function autoFillFromPOLineItem() {
+        const option = this.options[this.selectedIndex];
+        if (option && option.value) {
+            const row = this.closest('.item-row');
+            const descInput = row.querySelector('[name*="description"]');
+            const rateInput = row.querySelector('[name*="rate"]');
+            
+            if (descInput && option.dataset.description) {
+                descInput.value = option.dataset.description;
+            }
+            if (rateInput && option.dataset.price) {
+                rateInput.value = option.dataset.price;
+            }
+            calculateTotals();
+        }
+    }
+    
+    // Override add object to bind PO lines
+    const originalAddBtn = addBtn?.onclick;
+    if (addBtn) {
+        addBtn.addEventListener('click', function() {
+            const rows = container.querySelectorAll('.item-row');
+            const newRow = rows[rows.length - 1]; // last added
+            if (newRow) {
+                const select = newRow.querySelector('[name*="po_line_item"]');
+                if (select) select.addEventListener('change', autoFillFromPOLineItem);
+                updatePOLineItemOptions(newRow);
+            }
+        });
+    }
+
 });
 </script>
 {% endblock %}
