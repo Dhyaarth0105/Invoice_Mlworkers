@@ -256,11 +256,22 @@ def generate_invoice_pdf(invoice, items, company, client):
     ]
     
     sig_info = [
-        Paragraph(f"For <b>{company.name.upper()}</b>:", style_center),
-        Spacer(1, 10*mm),
+        Paragraph(f"For <b>{company.name.upper()}</b>:", style_center)
+    ]
+    try:
+        if getattr(company, 'stamp', None) and os.path.exists(company.stamp.path):
+            sig_info.append(Spacer(1, 1*mm))
+            sig_info.append(Image(company.stamp.path, width=30*mm, height=12*mm, hAlign='CENTER'))
+            sig_info.append(Spacer(1, 1*mm))
+        else:
+            sig_info.append(Spacer(1, 10*mm))
+    except Exception:
+        sig_info.append(Spacer(1, 10*mm))
+        
+    sig_info.extend([
         Paragraph("________________________", style_center),
         Paragraph("Authorized Signatory", style_center),
-    ]
+    ])
 
     footer_table = Table([[bank_info, sig_info]], colWidths=[120*mm, 80*mm])
     footer_table.setStyle(TableStyle([
@@ -456,10 +467,21 @@ def generate_credit_note_pdf(credit_note, items, company, client):
     elements.append(Spacer(1, 5*mm))
     sig_info = [
         Paragraph(f"For <b>{company.name.upper()}</b>:", style_right),
-        Spacer(1, 15*mm),
+    ]
+    try:
+        if getattr(company, 'stamp', None) and os.path.exists(company.stamp.path):
+            sig_info.append(Spacer(1, 1*mm))
+            sig_info.append(Image(company.stamp.path, width=30*mm, height=12*mm, hAlign='RIGHT'))
+            sig_info.append(Spacer(1, 1*mm))
+        else:
+            sig_info.append(Spacer(1, 15*mm))
+    except Exception:
+        sig_info.append(Spacer(1, 15*mm))
+        
+    sig_info.extend([
         Paragraph("________________________", style_right),
         Paragraph("Authorized Signatory&nbsp;&nbsp;&nbsp;&nbsp;", style_right),
-    ]
+    ])
     elements.extend(sig_info)
 
     doc.build(elements)
