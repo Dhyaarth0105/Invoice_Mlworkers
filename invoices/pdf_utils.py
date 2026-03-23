@@ -68,10 +68,11 @@ def generate_invoice_pdf(invoice, items, company, client):
     elements.append(header_table)
 
     # 3. BILL TO / INVOICE DETAILS SPLIT
+    bill_address = invoice.bill_to_address or (client.address if client else "") or ""
     bill_to_text = [
         Paragraph("<b>Bill To:</b>", style_left),
-        Paragraph(f"<b>{invoice.bill_to_name or client.name}</b>", style_left_bold),
-        Paragraph(f"{(invoice.bill_to_address or client.address or '').replace('\n', '<br/>')}", style_left),
+        Paragraph(f"<b>{invoice.bill_to_name or (client.name if client else '')}</b>", style_left_bold),
+        Paragraph(f"{str(bill_address).replace(chr(10), '<br/>').replace(chr(13), '')}", style_left),
         Paragraph(f"Contact No: {client.phone or ''} &nbsp;&nbsp; GSTIN: {invoice.bill_to_gstin or client.gstin or ''}", style_left),
         Paragraph(f"State: {invoice.state_code or ''}", style_left),
     ]
@@ -96,9 +97,10 @@ def generate_invoice_pdf(invoice, items, company, client):
     elements.append(details_table)
 
     # 4. SHIP TO (Full Width)
+    ship_address = invoice.ship_to_address or invoice.bill_to_address or (client.address if client else "") or ""
     ship_to_text = [
-        Paragraph(f"<b>Ship To:</b> &nbsp;&nbsp; {invoice.ship_to_name or invoice.bill_to_name or client.name}", style_left),
-        Paragraph(f"Address: &nbsp;&nbsp; {(invoice.ship_to_address or invoice.bill_to_address or client.address or '').replace('\n', ', ')}", style_left),
+        Paragraph(f"<b>Ship To:</b> &nbsp;&nbsp; {invoice.ship_to_name or invoice.bill_to_name or (client.name if client else '')}", style_left),
+        Paragraph(f"Address: &nbsp;&nbsp; {str(ship_address).replace(chr(10), ', ').replace(chr(13), '')}", style_left),
     ]
     ship_to_table = Table([[ship_to_text]], colWidths=[200*mm])
     ship_to_table.setStyle(TableStyle([
@@ -241,7 +243,8 @@ def generate_invoice_pdf(invoice, items, company, client):
 
     # 7. TERMS & BANK/SIGNATURE FOOTER
     elements.append(Spacer(1, 2*mm))
-    terms = Paragraph(f"<b>Terms & Conditions:</b><br/>{invoice.notes or 'Thanks for doing business with us!'}", style_small)
+    notes = invoice.notes or 'Thanks for doing business with us!'
+    terms = Paragraph(f"<b>Terms & Conditions:</b><br/>{str(notes).replace(chr(10), '<br/>').replace(chr(13), '')}", style_small)
     elements.append(Table([[terms]], colWidths=[200*mm], style=[('BOX', (0,0),(-1,-1),0.5,border_color)]))
     
     bank_info = [
@@ -297,6 +300,7 @@ def generate_credit_note_pdf(credit_note, items, company, client):
     style_right = ParagraphStyle('Right', parent=styles['Normal'], fontSize=8, alignment=TA_RIGHT, fontName='Helvetica')
     style_small = ParagraphStyle('Small', parent=style_left, fontSize=7)
     style_title = ParagraphStyle('Title', parent=style_center, fontSize=12, fontName='Helvetica-Bold', spaceAfter=2)
+    style_header_cell = ParagraphStyle('HCell', parent=style_center, fontSize=8, fontName='Helvetica-Bold', leading=9) # Added for consistency
 
     # 1. CREDIT NOTE Title
     elements.append(Paragraph("<b><u>Credit Note</u></b>", style_title))
@@ -322,17 +326,21 @@ def generate_credit_note_pdf(credit_note, items, company, client):
     header_table.setStyle(TableStyle([
         ('BOX', (0, 0), (-1, -1), 0.5, border_color),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 5), # Added for consistency
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5), # Added for consistency
         ('LEFTPADDING', (0, 0), (-1, -1), 0),
         ('RIGHTPADDING', (0, 0), (-1, -1), 0),
     ]))
     elements.append(header_table)
 
     # 3. TO / NOTE DETAILS SPLIT
-    to_text = [
-        Paragraph("<b>To:</b>", style_left),
-        Paragraph(f"<b>{credit_note.bill_to_name or client.name}</b>", style_left_bold),
-        Paragraph(f"{(credit_note.bill_to_address or client.address or '').replace('\n', '<br/>')}", style_left),
+    bill_address = credit_note.bill_to_address or (client.address if client else "") or ""
+    bill_to_text = [
+        Paragraph("<b>Bill To:</b>", style_left),
+        Paragraph(f"<b>{credit_note.bill_to_name or (client.name if client else '')}</b>", style_left_bold),
+        Paragraph(f"{str(bill_address).replace(chr(10), '<br/>').replace(chr(13), '')}", style_left),
         Paragraph(f"Contact No: {client.phone or ''} &nbsp;&nbsp; GSTIN: {credit_note.bill_to_gstin or client.gstin or ''}", style_left),
+        Paragraph(f"State: {credit_note.state_code or ''}", style_left), # Added for consistency
     ]
     
     note_details = [
@@ -344,7 +352,7 @@ def generate_credit_note_pdf(credit_note, items, company, client):
         note_details.append(Paragraph(f"Ref Inv No: <b>{credit_note.invoice_reference.invoice_number}</b>", style_left))
         note_details.append(Paragraph(f"Inv Date: <b>{credit_note.invoice_reference.invoice_date.strftime('%d/%m/%Y')}</b>", style_left))
 
-    details_table = Table([[to_text, note_details]], colWidths=[110*mm, 80*mm])
+    details_table = Table([[bill_to_text, note_details]], colWidths=[110*mm, 80*mm])
     details_table.setStyle(TableStyle([
         ('BOX', (0, 0), (-1, -1), 0.5, border_color),
         ('LINEBEFORE', (1, 0), (1, 0), 0.5, border_color),
