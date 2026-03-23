@@ -40,46 +40,50 @@ def generate_invoice_pdf(invoice, items, company, client):
     elements.append(Paragraph("<b>Tax Invoice</b>", style_title))
     elements.append(Spacer(1, 4*mm))
 
-    # 2. COMPANY HEADER BOX (Logo Left, Text Center)
-    logo = None
-    if company.stamp:
-        try:
-            if os.path.exists(company.stamp.path):
-                logo = Image(company.stamp.path, width=25*mm, height=25*mm)
-        except: pass
-
+    # 2. COMPANY HEADER BOX (Only Text Center)
     company_info = [
         Paragraph(f"<b>{company.name.upper()}</b>", style_center_bold),
         Spacer(1, 2*mm),
         Paragraph(f"{company.address.upper() if company.address else ''}", style_center),
         Paragraph(f"Phone: {company.phone or ''} &nbsp;&nbsp;&nbsp;&nbsp; Email: {company.email or ''}", style_center),
-        Paragraph(f"GSTIN: {company.gstin or ''} &nbsp;&nbsp;&nbsp;&nbsp; State: {company.state_code or ''}", style_center),
     ]
+    
+    company_tax_info = []
+    if company.gstin: company_tax_info.append(f"GSTIN: {company.gstin}")
+    if company.state_code: company_tax_info.append(f"State: {company.state_code}")
+    if getattr(company, 'udhyam_number', None): company_tax_info.append(f"Udhyam No: {company.udhyam_number}")
+    if company_tax_info:
+        company_info.append(Paragraph(" &nbsp;&nbsp;&nbsp;&nbsp; ".join(company_tax_info), style_center))
 
-    header_table = Table([[logo, company_info]], colWidths=[35*mm, 165*mm])
+    header_table = Table([[company_info]], colWidths=[200*mm])
     header_table.setStyle(TableStyle([
         ('BOX', (0, 0), (-1, -1), 0.5, border_color),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('TOPPADDING', (0, 0), (-1, -1), 5),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-        ('LEFTPADDING', (0, 0), (-1, -1), 0),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
     ]))
     elements.append(header_table)
 
     # 3. BILL TO / INVOICE DETAILS SPLIT
     bill_address = invoice.bill_to_address or (client.address if client else "") or ""
+    gstin_str = invoice.bill_to_gstin or client.gstin or ''
+    contact_parts = []
+    if client and client.phone: contact_parts.append(f"Contact No: {client.phone}")
+    if gstin_str and gstin_str not in str(bill_address):
+        contact_parts.append(f"GSTIN: {gstin_str}")
+    
     bill_to_text = [
         Paragraph("<b>Bill To:</b>", style_left),
         Paragraph(f"<b>{invoice.bill_to_name or (client.name if client else '')}</b>", style_left_bold),
         Paragraph(f"{str(bill_address).replace(chr(10), '<br/>').replace(chr(13), '')}", style_left),
-        Paragraph(f"Contact No: {client.phone or ''} &nbsp;&nbsp; GSTIN: {invoice.bill_to_gstin or client.gstin or ''}", style_left),
-        Paragraph(f"State: {invoice.state_code or ''}", style_left),
     ]
+    if contact_parts: bill_to_text.append(Paragraph(" &nbsp;&nbsp; ".join(contact_parts), style_left))
+    if invoice.state_code: bill_to_text.append(Paragraph(f"State: {invoice.state_code}", style_left))
     
     invoice_details = [
         Paragraph(f"Inv No: <b>{invoice.invoice_number}</b>", style_left),
         Paragraph(f"Date: <b>{invoice.invoice_date.strftime('%d/%m/%Y')}</b>", style_left),
+        Paragraph(f"Due Date: <b>{invoice.due_date.strftime('%d/%m/%Y') if invoice.due_date else ''}</b>", style_left),
         Paragraph(f"Vendor Code: <b>{invoice.vendor_code or ''}</b>", style_left),
         Paragraph(f"Order No: <b>{invoice.po_number or ''}</b>", style_left),
         Paragraph(f"Order Date: <b>{invoice.po_date.strftime('%d/%m/%Y') if invoice.po_date else ''}</b>", style_left),
@@ -317,42 +321,45 @@ def generate_credit_note_pdf(credit_note, items, company, client):
     elements.append(Paragraph("<b><u>Credit Note</u></b>", style_title))
     elements.append(Spacer(1, 1*mm))
 
-    # 2. COMPANY HEADER BOX (Logo Left, Text Center)
-    logo = None
-    if company.stamp:
-        try:
-            if os.path.exists(company.stamp.path):
-                logo = Image(company.stamp.path, width=25*mm, height=25*mm)
-        except: pass
-
+    # 2. COMPANY HEADER BOX (Only Text Center)
     company_info = [
         Paragraph(f"<b>{company.name.upper()}</b>", style_center_bold),
         Spacer(1, 2*mm),
         Paragraph(f"{company.address.upper() if company.address else ''}", style_center),
         Paragraph(f"Phone: {company.phone or ''} &nbsp;&nbsp;&nbsp;&nbsp; Email: {company.email or ''}", style_center),
-        Paragraph(f"GSTIN: {company.gstin or ''} &nbsp;&nbsp;&nbsp;&nbsp; State: {company.state_code or ''}", style_center),
     ]
+    
+    company_tax_info = []
+    if company.gstin: company_tax_info.append(f"GSTIN: {company.gstin}")
+    if company.state_code: company_tax_info.append(f"State: {company.state_code}")
+    if getattr(company, 'udhyam_number', None): company_tax_info.append(f"Udhyam No: {company.udhyam_number}")
+    if company_tax_info:
+        company_info.append(Paragraph(" &nbsp;&nbsp;&nbsp;&nbsp; ".join(company_tax_info), style_center))
 
-    header_table = Table([[logo, company_info]], colWidths=[35*mm, 155*mm])
+    header_table = Table([[company_info]], colWidths=[200*mm])
     header_table.setStyle(TableStyle([
         ('BOX', (0, 0), (-1, -1), 0.5, border_color),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 5), # Added for consistency
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5), # Added for consistency
-        ('LEFTPADDING', (0, 0), (-1, -1), 0),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
     ]))
     elements.append(header_table)
 
     # 3. TO / NOTE DETAILS SPLIT
     bill_address = credit_note.bill_to_address or (client.address if client else "") or ""
+    gstin_str = credit_note.bill_to_gstin or client.gstin or ''
+    contact_parts = []
+    if client and client.phone: contact_parts.append(f"Contact No: {client.phone}")
+    if gstin_str and gstin_str not in str(bill_address):
+        contact_parts.append(f"GSTIN: {gstin_str}")
+
     bill_to_text = [
         Paragraph("<b>Bill To:</b>", style_left),
         Paragraph(f"<b>{credit_note.bill_to_name or (client.name if client else '')}</b>", style_left_bold),
         Paragraph(f"{str(bill_address).replace(chr(10), '<br/>').replace(chr(13), '')}", style_left),
-        Paragraph(f"Contact No: {client.phone or ''} &nbsp;&nbsp; GSTIN: {credit_note.bill_to_gstin or client.gstin or ''}", style_left),
-        Paragraph(f"State: {credit_note.state_code or ''}", style_left), # Added for consistency
     ]
+    if contact_parts: bill_to_text.append(Paragraph(" &nbsp;&nbsp; ".join(contact_parts), style_left))
+    if credit_note.state_code: bill_to_text.append(Paragraph(f"State: {credit_note.state_code}", style_left))
     
     note_details = [
         Paragraph("<b>Details:</b>", style_left),

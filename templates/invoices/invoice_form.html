@@ -669,6 +669,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update PO line item options when PO reference changes
     if (poReferenceSelect) {
         poReferenceSelect.addEventListener('change', function() {
+            const poNumberInput = document.getElementById('id_po_number');
+            if (poNumberInput && this.value && this.selectedIndex >= 0) {
+                const text = this.options[this.selectedIndex].textContent;
+                const parts = text.split(' - ');
+                if (parts.length > 0 && !text.includes('Select PO Reference')) {
+                    poNumberInput.value = parts[0].trim();
+                }
+            }
             updateAllPOLineItemOptions();
         });
     }

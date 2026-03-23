@@ -906,9 +906,9 @@ body {
     align-items: center;
 }
 
-/* Invoice form item row - 7 columns (po_line_item, description, sac_code, qty, rate, total, delete) */
+/* Invoice form item row - 8 columns (po_line_item, description, material_code, sac_code, qty, rate, total, delete) */
 .invoice-items .item-row {
-    grid-template-columns: 140px 1.8fr 85px 80px 90px 90px 45px;
+    grid-template-columns: 120px 2fr 1fr 150px 75px 85px 90px 45px;
     gap: 8px;
     min-width: 0;
     /* Prevent overflow */
@@ -919,7 +919,7 @@ body {
 
 .item-row-header {
     display: grid;
-    grid-template-columns: 140px 1.8fr 85px 80px 90px 90px 45px;
+    grid-template-columns: 120px 2fr 1fr 150px 75px 85px 90px 45px;
     gap: 8px;
     align-items: center;
     padding: 10px 8px;
@@ -943,7 +943,7 @@ body {
 }
 
 .invoice-items .item-row .item-total {
-    grid-column: 6;
+    grid-column: 7;
     align-self: center;
     min-width: 0;
     text-align: right;
@@ -998,8 +998,9 @@ body {
 }
 
 /* PO Form item row - 7 columns (subline#, desc, qty, price, uom, total, delete) */
+/* PO Form item row - 9 columns (subline#, desc, mat_code, hsn, qty, price, uom, total, delete) */
 .po-form .item-row {
-    grid-template-columns: 80px 1.5fr 85px 90px 110px 90px 45px;
+    grid-template-columns: 70px 1.8fr 1.2fr 90px 75px 85px 85px 90px 45px;
     gap: 8px;
     min-width: 0;
     overflow: hidden;
@@ -1034,7 +1035,7 @@ body {
 }
 
 .po-form .item-row .item-total {
-    grid-column: 6;
+    grid-column: 8;
     align-self: center;
     min-width: 0;
     text-align: right;
@@ -1043,7 +1044,7 @@ body {
 }
 
 .po-form .item-row .remove-item {
-    grid-column: 7;
+    grid-column: 9;
     align-self: center;
     flex-shrink: 0;
     min-width: 40px;
