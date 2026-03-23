@@ -51,6 +51,15 @@
             </div>
             <div class="form-row">
                 <div class="form-group" style="width: 100%;">
+                    <label>{{ form.udhyam_number.label }}</label>
+                    {{ form.udhyam_number }}
+                    {% if form.udhyam_number.errors %}
+                        <div class="text-danger">{{ form.udhyam_number.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group" style="width: 100%;">
                     <label>{{ form.address.label }} <span class="text-danger">*</span></label>
                     {{ form.address }}
                     {% if form.address.errors %}

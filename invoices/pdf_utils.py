@@ -265,7 +265,17 @@ def generate_invoice_pdf(invoice, items, company, client):
     try:
         if getattr(company, 'stamp', None) and os.path.exists(company.stamp.path):
             sig_info.append(Spacer(1, 1*mm))
-            sig_info.append(Image(company.stamp.path, width=30*mm, height=12*mm, hAlign='CENTER'))
+            img = Image(company.stamp.path, width=30*mm, height=12*mm)
+            img_table = Table([[img]], colWidths=[80*mm])
+            img_table.setStyle(TableStyle([
+                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                ('LEFTPADDING', (0,0), (-1,-1), 0),
+                ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                ('TOPPADDING', (0,0), (-1,-1), 0),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+            ]))
+            sig_info.append(img_table)
             sig_info.append(Spacer(1, 1*mm))
         else:
             sig_info.append(Spacer(1, 10*mm))
@@ -478,7 +488,17 @@ def generate_credit_note_pdf(credit_note, items, company, client):
     try:
         if getattr(company, 'stamp', None) and os.path.exists(company.stamp.path):
             sig_info.append(Spacer(1, 1*mm))
-            sig_info.append(Image(company.stamp.path, width=30*mm, height=12*mm, hAlign='RIGHT'))
+            img = Image(company.stamp.path, width=30*mm, height=12*mm)
+            img_table = Table([[img]], colWidths=[200*mm])
+            img_table.setStyle(TableStyle([
+                ('ALIGN', (0,0), (-1,-1), 'RIGHT'),
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                ('LEFTPADDING', (0,0), (-1,-1), 0),
+                ('RIGHTPADDING', (0,0), (-1,-1), 5),
+                ('TOPPADDING', (0,0), (-1,-1), 0),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+            ]))
+            sig_info.append(img_table)
             sig_info.append(Spacer(1, 1*mm))
         else:
             sig_info.append(Spacer(1, 15*mm))
